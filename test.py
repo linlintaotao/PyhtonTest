@@ -9,4 +9,5 @@ def get_test_time():
 
 
 if __name__ == '__main__':
+    print('get test time from python')
     print(get_test_time())
