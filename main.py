@@ -1,5 +1,5 @@
 # 测试入口
-
+from src.analysis.Analysis import AnalysisTool
 
 if __name__ == '__main__':
     analysisTool = AnalysisTool()
