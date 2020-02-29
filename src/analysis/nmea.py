@@ -16,7 +16,10 @@ class GNGGAFrame:
         return self._name
 
     def nmeatime(self, date):
-        time = datetime.strptime(date, '%H%M%S.%f')
+        strData = str(date)
+        while len(strData) < 8:
+            strData = '0' + strData
+        time = datetime.strptime(strData, '%H%M%S.%f')
         if (time.microsecond > 970) | time.microsecond < 30:
             time += timedelta(seconds=1)
         # 当GNGGA中出现'000000.'时，天数-=1
@@ -30,9 +33,13 @@ class GNGGAFrame:
         '''
         if self.timeCheck is False:
             for time in data.loc[:, '1']:
-                if '000000.' in time:
-                    self._time -= timedelta(days=1)
-        data.loc[:, '1'] = data.loc[:, '1'].apply(lambda t: self.nmeatime(t))
+                if isinstance(time, str):
+                    if '000000.' in date:
+                        self._time -= timedelta(days=1)
+                else:
+                    if 1 > time:
+                        self._time -= timedelta(days=1)
+        data.loc[:, '1'] = data.loc[:, '1'].astype(str).apply(lambda t: self.nmeatime(t))
         self._gga = data.set_index('1')
         print(self._gga)
         self._gga.loc[:, '2'] = self._gga.loc[:, '2'].astype(float).apply(lambda x: self.dmTodd(x))

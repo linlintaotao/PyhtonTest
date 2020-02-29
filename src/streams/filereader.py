@@ -28,7 +28,6 @@ class FileWriter:
                 self._entity.close()
 
     def write(self, data):
-        print('write data = %s' % data)
         if self.state is True:
             self._entity.write(data)
             self._entity.flush()

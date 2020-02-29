@@ -55,7 +55,7 @@ class FmiChart:
         plt.axis('equal')
         plt.grid(True, ls=':', c='lightgray')
         plt.savefig(self._savePath + name + '.png')
-        plt.show()
+        # plt.show()
 
     def drawLineChart(self, dataframe):
         fig = plt.subplots(figsize=[10, 8])
@@ -73,7 +73,7 @@ class FmiChart:
         plt.legend()
         plt.grid(True, ls=':', c='lightgray')
         plt.savefig(self._savePath + 'sateNumAndFixSate.png')
-        plt.show()
+        # plt.show()
 
     # pointTruth [latitude,longitude,altitude]
     # dataTruth
@@ -119,7 +119,7 @@ class FmiChart:
         anx.legend(fontsize='small', ncol=1)
         anx.grid(True, ls=':', c='lightgray')
         plt.savefig(self._savePath + name + '.png')
-        plt.show()
+        # plt.show()
 
     def drawHorizontal(self, hzData, nameList, title):
         fig, axh = plt.subplots(figsize=(10, 8))
@@ -137,7 +137,7 @@ class FmiChart:
         axh.legend(fontsize='small', ncol=1)
         axh.grid(True, ls=':', c='lightgray')
         fig.savefig(self._savePath + 'cdf.png')
-        plt.show()
+        # plt.show()
 
     def drawSateCn0(self, name, sateCn0):
         fig, ax = plt.subplots(figsize=(10, 8))
@@ -148,4 +148,4 @@ class FmiChart:
         ax.set_ylabel('CN0 (db)')
         ax.grid(True, ls=':', c='lightgray')
         fig.savefig(self._savePath + name + 'Cn0.png')
-        plt.show()
+        # plt.show()

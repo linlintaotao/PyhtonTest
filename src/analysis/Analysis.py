@@ -18,7 +18,7 @@ class AnalysisTool:
         self._GSVEntity = list()
 
     # 获取当前文件夹下的所有文件
-    def read_file(self, tag='txt'):
+    def read_file(self, tag='log'):
         for file in os.listdir(self._dir):
             if file.endswith(tag):
                 self._dataFiles.append(file)
@@ -34,17 +34,21 @@ class AnalysisTool:
             '''
                 we put 20 names because it's NMEA-0183 Data, each line has different num with step ','  
             '''
+            print(self._dir + '/' + file)
             df = pd.read_table(self._dir + '/' + file, sep=',',
                                encoding=self.get_encoding(self._dir + '/' + file),
                                header=None,
                                names=['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
                                       '11', '12', '13', '14', '15', '16', '17', '18', '19', '20'],
-                               error_bad_lines=False)
+                               error_bad_lines=False,
+                               low_memory=False
+                               )
 
             self._GSV = df.loc[df['0'].str.contains('GSV')].copy()
             gsv = GSV(file, self._GSV)
-            gga = GNGGAFrame(file, df.loc[df['0'] == '$GNGGA'].copy(),
+            gga = GNGGAFrame(file, df.loc[(df['0'].astype(str) == '$GNGGA') & (df['6'].astype(str) == '4')].copy(),
                              self.localTime)
+            # print(gga)
             self._ggaEntity.append(gga)
             self._GSVEntity.append(gsv)
 

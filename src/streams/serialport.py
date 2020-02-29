@@ -32,13 +32,15 @@ class SerialPort:
         self._file.close()
 
     def send_data(self, data):
-        print(str(data))
+        print("send data =" + str(data))
         self._entity.write(data)
 
     def read_data(self):
         data = self._entity.readline()
+        if len(data) <= 0:
+            return None
         if self._showLog is True:
-            print(data)
+            print("show log = %s" % data)
         self._file.write(data)
         return data
 

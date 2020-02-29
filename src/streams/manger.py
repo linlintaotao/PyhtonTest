@@ -27,7 +27,7 @@ class Manager:
 
     def start(self):
         file = FileWriter(self.port.split('/')[-1] + ".txt", dir=os.path.abspath('../../data'))
-        serial = SerialPort(iport=self.port, filewriter=file, baudRate=38400, showLog=True)
+        serial = SerialPort(iport=self.port, filewriter=file, baudRate=115200, showLog=True)
         self._serial_list.append(serial)
         self._ntrip.register(serial)
         for serial in self._serial_list:

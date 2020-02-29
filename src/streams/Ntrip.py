@@ -131,8 +131,10 @@ class NtripClient(Publisher):
                     # 通知所有的串口进行刷新
                     self.notifyAll(data)
                 sleep(0.5)
+                # print(data)
             except Exception as e:
                 self._reconnect = True
+                self._reconnectLimit += 5
                 print(e)
                 break
 
@@ -147,9 +149,9 @@ class NtripClient(Publisher):
     def check(self):
 
         while self._stopByUser is False:
-            if (self._reconnectLimit > 10) | self._reconnect is True:
+            if (self._reconnectLimit > 5) | self._reconnect is True:
                 self.reconnect()
-            sleep(1)
+            sleep(5)
 
     def start_check(self):
 
@@ -160,5 +162,5 @@ class NtripClient(Publisher):
 
 
 if __name__ == '__main__':
-    ntrip = NtripClient(mountPoint='Obs_haidian')
+    ntrip = NtripClient(mountPoint='Obs')
     ntrip.start()
