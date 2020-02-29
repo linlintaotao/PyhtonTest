@@ -17,7 +17,7 @@ class AnalysisTool:
         self._ggaEntity = list()
         self._GSVEntity = list()
 
-    # 获取当前文件夹下的所有文件
+    # 获取当前文件夹下的所有log文件
     def read_file(self, tag='log'):
         for file in os.listdir(self._dir):
             if file.endswith(tag):
@@ -46,7 +46,7 @@ class AnalysisTool:
 
             self._GSV = df.loc[df['0'].str.contains('GSV')].copy()
             gsv = GSV(file, self._GSV)
-            gga = GNGGAFrame(file, df.loc[(df['0'].astype(str) == '$GNGGA') & (df['6'].astype(str) == '4')].copy(),
+            gga = GNGGAFrame(file, df.loc[(df['0'].astype(str) == '$GNGGA')].copy(),
                              self.localTime)
             # print(gga)
             self._ggaEntity.append(gga)
@@ -60,12 +60,12 @@ class AnalysisTool:
 
     def drawPic(self):
         fmiChar = FmiChart(path=self._dir + '/')
-        pointTruth = [40.064109, 116.228165, 54.6]
         fmiChar.drawLineChart(self._ggaEntity)
-        fmiChar.drawCdf(self._ggaEntity, pointTruth=pointTruth, singlePoint=True)
         for data in self._ggaEntity:
-            x, y, z = data.get_scatter()
-            fmiChar.drawScatter(data.get_name(), x, y)
+            x, y, z, fix = data.get_scatter()
+            pointTruth = data.getPointTruth()
+            fmiChar.drawCdf(self._ggaEntity, pointTruth=pointTruth, singlePoint=True)
+            fmiChar.drawScatter(data.get_name(), x, y, fix)
         for gsv in self._GSVEntity:
             fmiChar.drawSateCn0(gsv.get_name(), gsv.get_satellites_status())
 

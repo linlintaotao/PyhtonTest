@@ -26,7 +26,7 @@ class Manager:
         return 'Bluetooth' not in self.port
 
     def start(self):
-        file = FileWriter(self.port.split('/')[-1] + ".txt", dir=os.path.abspath('../../data'))
+        file = FileWriter(self.port.split('/')[-1] + ".log", dir=os.path.abspath('../../data'))
         serial = SerialPort(iport=self.port, filewriter=file, baudRate=115200, showLog=True)
         self._serial_list.append(serial)
         self._ntrip.register(serial)

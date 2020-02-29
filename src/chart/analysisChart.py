@@ -18,6 +18,7 @@ class FmiChart:
 
     def __init__(self, path=''):
         self._savePath = path
+        self._fixColor = ['black', 'black', 'red', 'gray', 'green', 'blue', 'yellow']
 
     def get_accuracy(self, axis):
         accuracyItem = round(axis / 10, 2)
@@ -27,7 +28,7 @@ class FmiChart:
                 return accuracyItem
         return accuracyItems[-1]
 
-    def drawScatter(self, name, xPos, yPos):
+    def drawScatter(self, name, xPos, yPos, fix):
         xMax, xMin, yMax, yMin = max(xPos), min(xPos), max(yPos), min(yPos)
         xCenter, yCenter = np.mean(xPos), np.mean(yPos)
         axis = max([abs(xMax - xCenter),
@@ -45,7 +46,8 @@ class FmiChart:
                 ax.annotate(str(mid), xy=(accuracyItem * (i - 1), 0), xytext=(mid, 0), ha='right', color='blue')
             ax.add_patch(circle)
         fig.text(0.85, 0.5, WATERMARK, fontsize=40, color='gray', ha='right', va='center', alpha=0.2, rotation=30)
-        ax.scatter(list(map(lambda x: x - xCenter, xPos)), list(map(lambda y: y - yCenter, yPos)), marker='1', c='r')
+        color = list(map(lambda c: self._fixColor[c.astype(int)], fix))
+        ax.scatter(list(map(lambda x: x - xCenter, xPos)), list(map(lambda y: y - yCenter, yPos)), marker='1', c=color)
         ax.set_xlim(-axis, axis)
         ax.set_ylim(-axis, axis)
         plt.xlabel(r'points x (m)')
@@ -58,7 +60,7 @@ class FmiChart:
         # plt.show()
 
     def drawLineChart(self, dataframe):
-        fig = plt.subplots(figsize=[10, 8])
+        fig = plt.subplots(figsize=[19, 8])
         ax2 = plt.subplot(212)
         for data in dataframe:
             data.get_sateNum().plot(label=data.get_name())
@@ -105,9 +107,9 @@ class FmiChart:
         self.drawHorizontal(hz_diffList, nameList, TITLES[3])
 
     def drawNEU(self, lineData, nameList, title, name=''):
-        fig, anx = plt.subplots(figsize=(10, 8))
+        fig, anx = plt.subplots(figsize=(19, 8))
         for i in range(len(lineData)):
-            lineData[i].plot(label=nameList[i])
+            lineData[i].plot(label=nameList[i], marker='o')
         plt.axhline(y=1, color='b', linestyle='-.', lw=0.6, label='1 m line')
         plt.axhline(y=-1, color='b', linestyle='-.', lw=.6)
         fig.text(0.75, 0.25, WATERMARK, fontsize=25, color='gray', ha='right', va='bottom', alpha=0.4)
@@ -122,7 +124,7 @@ class FmiChart:
         # plt.show()
 
     def drawHorizontal(self, hzData, nameList, title):
-        fig, axh = plt.subplots(figsize=(10, 8))
+        fig, axh = plt.subplots(figsize=(19, 8))
         axh.set_title(title)
 
         for i in range(len(hzData)):
@@ -140,7 +142,7 @@ class FmiChart:
         # plt.show()
 
     def drawSateCn0(self, name, sateCn0):
-        fig, ax = plt.subplots(figsize=(10, 8))
+        fig, ax = plt.subplots(figsize=(19, 8))
         plt.title('Satellite cn0 mean')
         plt.tick_params(labelsize=6)
         fig.text(0.85, 0.5, WATERMARK, fontsize=40, color='gray', ha='right', va='center', alpha=0.2, rotation=30)

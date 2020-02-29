@@ -65,11 +65,19 @@ class GNGGAFrame:
     def get_altitude(self):
         return self._gga.loc[:, '9'].astype(float)
 
+    def getPointTruth(self):
+        fixList = self.get_fixState()
+        for i in range(len(fixList)):
+            if fixList[i] == 4:
+                return [self.get_latitude()[i], self.get_longitude()[i], self.get_altitude()[i]]
+        return [40, 60, 54]
+
     def get_scatter(self):
         latitude = self.get_latitude()
         longitude = self.get_longitude()
         altitude = self.get_altitude()
-        xlist, ylist, zlist = list(), list(), list()
+        fixState = self.get_fixState()
+        xlist, ylist, zlist, fixList = list(), list(), list(), list()
         centerLongitude = None
         for i in range(len(latitude)):
             if (centerLongitude is None) & (longitude[i] is not None) & (longitude[i] != 0):
@@ -79,11 +87,12 @@ class GNGGAFrame:
                 xlist.append(x)
                 ylist.append(y)
                 zlist.append(z)
+                fixList.append(fixState[i])
             except Exception as e:
                 print(e)
                 continue
 
-        return xlist, ylist, zlist
+        return xlist, ylist, zlist, fixList
 
 
 class Satellite:
