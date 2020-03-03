@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import pandas as pd
 from pip._vendor import chardet
 from src.analysis.nmea import GNGGAFrame, GSV
-from src.chart.analysisChart import FmiChart
+from src.chart.drawChart import FmiChart
 
 
 class AnalysisTool:
@@ -47,7 +47,7 @@ class AnalysisTool:
             self._GSV = df.loc[df['0'].str.contains('GSV')].copy()
             gsv = GSV(file, self._GSV)
             gga = GNGGAFrame(file, df.loc[(df['0'].astype(str) == '$GNGGA')].copy(),
-                             self.localTime)
+                             self.localTime, 5)
             # print(gga)
             self._ggaEntity.append(gga)
             self._GSVEntity.append(gsv)
@@ -62,10 +62,11 @@ class AnalysisTool:
         fmiChar = FmiChart(path=self._dir + '/')
         fmiChar.drawLineChart(self._ggaEntity)
         for data in self._ggaEntity:
-            x, y, z, fix = data.get_scatter()
+            xList, yList, xFixList, yFixList, fixList = data.get_scatter()
+            fmiChar.drawScatter(data.get_name() + 'Fix', xFixList, yFixList)
+            fmiChar.drawScatter(data.get_name(), xList, yList, fixList)
             pointTruth = data.getPointTruth()
             fmiChar.drawCdf(self._ggaEntity, pointTruth=pointTruth, singlePoint=True)
-            fmiChar.drawScatter(data.get_name(), x, y, fix)
         for gsv in self._GSVEntity:
             fmiChar.drawSateCn0(gsv.get_name(), gsv.get_satellites_status())
 

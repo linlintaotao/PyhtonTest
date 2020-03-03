@@ -5,10 +5,11 @@ from src.analysis import Gauss
 
 class GNGGAFrame:
 
-    def __init__(self, name, data, localTime):
-        self._name = name.split('.txt')[0]
+    def __init__(self, name, data, localTime, hz=1):
+        self._name = name.split('.log')[0]
         self._time = localTime
         self.timeCheck = False
+        self.hz = hz
         self._gga = None
         self.parseData(data)
 
@@ -20,12 +21,14 @@ class GNGGAFrame:
         while len(strData) < 8:
             strData = '0' + strData
         time = datetime.strptime(strData, '%H%M%S.%f')
-        if (time.microsecond > 970) | time.microsecond < 30:
-            time += timedelta(seconds=1)
-        # 当GNGGA中出现'000000.'时，天数-=1
-        if '000000.' in date:
+        if self.hz == 1:
+            if (time.microsecond > 970) | time.microsecond < 30:
+                time += timedelta(seconds=1)
+        # 当GNGGA中出现'000000.'时，天数+=1
+        if '000000.0' in strData:
             self._time += timedelta(days=1)
-        return time.replace(year=self._time.year, month=self._time.month, day=self._time.day)
+        result = time.replace(year=self._time.year, month=self._time.month, day=self._time.day)
+        return result
 
     def parseData(self, data):
         '''
@@ -36,14 +39,16 @@ class GNGGAFrame:
                 if isinstance(time, str):
                     if '000000.' in date:
                         self._time -= timedelta(days=1)
-                else:
-                    if 1 > time:
-                        self._time -= timedelta(days=1)
+                elif 0.2 > time:
+                    self._time -= timedelta(days=1)
         data.loc[:, '1'] = data.loc[:, '1'].astype(str).apply(lambda t: self.nmeatime(t))
         self._gga = data.set_index('1')
         print(self._gga)
-        self._gga.loc[:, '2'] = self._gga.loc[:, '2'].astype(float).apply(lambda x: self.dmTodd(x))
-        self._gga.loc[:, '4'] = self._gga.loc[:, '4'].astype(float).apply(lambda x: self.dmTodd(x))
+        self.latitude = self._gga.loc[:, '2'].astype(float).apply(lambda x: self.dmTodd(x))
+        self.longitude = self._gga.loc[:, '4'].astype(float).apply(lambda x: self.dmTodd(x))
+        self.fixState = self._gga.loc[:, '6'].astype(int)
+        self.satNum = self._gga.loc[:, '7'].astype(float)
+        self.altitude = self._gga.loc[:, '9'].astype(float)
 
     def dmTodd(self, dm):
         dd = int(dm / 100)
@@ -51,19 +56,19 @@ class GNGGAFrame:
         return res
 
     def get_fixState(self):
-        return self._gga.loc[:, '6'].astype(float)
+        return self.fixState
 
     def get_sateNum(self):
-        return self._gga.loc[:, '7'].astype(float)
+        return self.satNum
 
     def get_latitude(self):
-        return self._gga.loc[:, '2']
+        return self.latitude
 
     def get_longitude(self):
-        return self._gga.loc[:, '4']
+        return self.longitude
 
     def get_altitude(self):
-        return self._gga.loc[:, '9'].astype(float)
+        return self.altitude
 
     def getPointTruth(self):
         fixList = self.get_fixState()
@@ -77,22 +82,25 @@ class GNGGAFrame:
         longitude = self.get_longitude()
         altitude = self.get_altitude()
         fixState = self.get_fixState()
-        xlist, ylist, zlist, fixList = list(), list(), list(), list()
+        xList, yList, xFixList, yFixList, fixList = list(), list(), list(), list(), list()
         centerLongitude = None
-        for i in range(len(latitude)):
+        for i in range(len(fixState)):
             if (centerLongitude is None) & (longitude[i] is not None) & (longitude[i] != 0):
                 centerLongitude = longitude[i]
             try:
                 x, y, z = Gauss.Gauss_BLHToXYH(latitude[i], longitude[i], altitude[i], centerLongitude)
-                xlist.append(x)
-                ylist.append(y)
-                zlist.append(z)
+                xList.append(x)
+                yList.append(y)
                 fixList.append(fixState[i])
+                if fixState[i] == 4:
+                    xFixList.append(x)
+                    yFixList.append(y)
+                # zlist.append(z)
             except Exception as e:
                 print(e)
                 continue
 
-        return xlist, ylist, zlist, fixList
+        return xList, yList, xFixList, yFixList, fixList
 
 
 class Satellite:
