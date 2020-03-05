@@ -2,7 +2,7 @@
 import os
 
 import serial.tools.list_ports as SerialManager
-
+import time
 from src.streams.Ntrip import NtripClient
 from src.streams.serialport import SerialPort
 from src.streams.filereader import FileWriter
@@ -11,7 +11,7 @@ from src.streams.filereader import FileWriter
 class Manager:
 
     def __init__(self):
-        self._ntrip = NtripClient(mountPoint='Obs')
+        self._ntrip = NtripClient(mountPoint='Obs20')
         self._serial_list = list()
         self.port = ''
 
@@ -26,8 +26,10 @@ class Manager:
         return 'Bluetooth' not in self.port
 
     def start(self):
-        file = FileWriter(self.port.split('/')[-1] + ".log", dir=os.path.abspath('../../data'))
-        serial = SerialPort(iport=self.port, filewriter=file, baudRate=115200, showLog=True)
+        file = FileWriter(
+            self.port.split('/')[-1] + '-' + time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) + ".log",
+            dir=os.path.abspath('../../data'))
+        serial = SerialPort(iport=self.port, fileWriter=file, baudRate=115200, showLog=True)
         self._serial_list.append(serial)
         self._ntrip.register(serial)
         for serial in self._serial_list:

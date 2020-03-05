@@ -37,10 +37,10 @@ class FmiChart:
         name : 测试的数据来源
         xpos : x轴坐标
         ypos : y轴坐标
-        onlyFix  : 是否只统计固定解
+        fixList  : fixList
     '''
 
-    def drawScatter(self, name, xPos, yPos, onlyFix=True):
+    def drawScatter(self, name, xPos, yPos, fixList=None):
         xMax, xMin, yMax, yMin = max(xPos), min(xPos), max(yPos), min(yPos)
         xCenter, yCenter = np.mean(xPos), np.mean(yPos)
         axis = max([abs(xMax - xCenter),
@@ -54,17 +54,16 @@ class FmiChart:
         '''画提示网格和圆'''
         for i in range(3):
             mid = round(accuracyItem * i, 2)
-            print(mid)
             circle = pacthes.Circle((0, 0), mid, fill=False, ls='--', color='lightgray', gid=str(mid))
             if i != 0:
                 ax.annotate(str(mid), xy=(accuracyItem * (i - 1), 0), xytext=(mid, 0), ha='right', color='blue')
             ax.add_patch(circle)
         fig.text(0.85, 0.5, WATERMARK, fontsize=40, color='gray', ha='right', va='center', alpha=0.2, rotation=30)
         ''' 根据解状态匹配对应的颜色 '''
-        if onlyFix:
+        if fixList is None:
             color = 'green'
         else:
-            color = list(map(lambda c: self._fixColor[c.astype(int)], onlyFix))
+            color = list(map(lambda c: self._fixColor[c.astype(int)], fixList))
         '''画点'''
         ax.scatter(list(map(lambda x: x - xCenter, xPos)), list(map(lambda y: y - yCenter, yPos)), marker='1', c=color)
         ax.set_xlim(-axis, axis)
@@ -88,7 +87,7 @@ class FmiChart:
 
         ax1 = plt.subplot(211, sharex=ax2)
         for data in dataframe:
-            data.get_fixState().plot(label=data.get_name(), fontsize=9)
+            data.get_state().plot(label=data.get_name(), fontsize=9)
         plt.title(r'FixState and sateNums')
         ax1.set_ylabel('FixState', fontsize=10)
         plt.legend()
@@ -98,32 +97,42 @@ class FmiChart:
 
     # pointTruth [latitude,longitude,altitude]
     # dataTruth
-    def drawCdf(self, dataFrameList, dataTruth=None, pointTruth=None, singlePoint=False):
-        n_diffList, e_diffList, u_diffList, hz_diffList = [], [], [], []
-        nameList, fixList = [], []
+    def drawCdf(self, dataFrameList, dataTruth=None, dataFrame=None, pointTruth=None, singlePoint=False, onlyFix=False):
+        nameList = []
+        if dataFrame is not None:
+            nameList.append(dataFrame.get_name() + '_Fix_' if onlyFix else '_')
+            self.drawSingleCdf(dataFrame, nameList, pointTruth=None, onlyFix=onlyFix)
+            return
+
         for dataFram in dataFrameList:
             nameList.append(dataFram.get_name())
-            n_diff, e_diff, u_diff = [], [], []
             if singlePoint:
-                n_diff = dataFram.get_latitude().apply(lambda x: (x - pointTruth[0]) * D2R * radius)
-                e_diff = dataFram.get_longitude().apply(lambda x:
-                                                        (x - pointTruth[1]) * D2R * radius *
-                                                        np.cos(pointTruth[0]) * D2R)
-                u_diff = dataFram.get_altitude().apply(lambda x: x - pointTruth[2])
-                hz_diffList.append(np.sqrt(n_diff[:] ** 2 + e_diff[:] ** 2))
+                self.drawSingleCdf(dataFram, nameList, pointTruth=None, onlyFix=onlyFix)
             else:
-                # todo
+                # todo 跟另一个数据对比
                 pass
-            n_diffList.append(n_diff)
-            e_diffList.append(e_diff)
-            u_diffList.append(u_diff)
-            fixList.append(dataFram.get_fixState().values)
-        self.drawNEU(n_diffList, nameList, TITLES[0], fixList, name='north')
-        self.drawNEU(e_diffList, nameList, TITLES[1], fixList, name='east')
-        self.drawNEU(u_diffList, nameList, TITLES[2], fixList, name='up')
+
+    def drawSingleCdf(self, dataFram, nameList, pointTruth=None, onlyFix=False):
+        n_diffList, e_diffList, u_diffList, fixList, hz_diffList = [], [], [], [], []
+        if pointTruth is None:
+            pointTruth = dataFram.getPointTruth()
+
+        n_diff = dataFram.get_latitude(onlyFix=onlyFix).apply(lambda x: (x - pointTruth[0]) * D2R * radius)
+        e_diff = dataFram.get_longitude(onlyFix=onlyFix).apply(lambda x:
+                                                               (x - pointTruth[1]) * D2R * radius *
+                                                               np.cos(pointTruth[0]) * D2R)
+        u_diff = dataFram.get_altitude(onlyFix=onlyFix).apply(lambda x: x - pointTruth[2])
+        n_diffList.append(n_diff)
+        e_diffList.append(e_diff)
+        u_diffList.append(u_diff)
+        hz_diffList.append(np.sqrt(n_diff[:] ** 2 + e_diff[:] ** 2))
+        fixList.append(dataFram.get_state(onlyFix=onlyFix).values)
+        self.drawNEU(n_diffList, nameList, TITLES[0], fixList, name='north', onlyFix=onlyFix)
+        self.drawNEU(e_diffList, nameList, TITLES[1], fixList, name='east', onlyFix=onlyFix)
+        self.drawNEU(u_diffList, nameList, TITLES[2], fixList, name='up', onlyFix=onlyFix)
         self.drawHorizontal(hz_diffList, nameList, TITLES[3])
 
-    def drawNEU(self, lineData, nameList, title, fixList, name=''):
+    def drawNEU(self, lineData, nameList, title, fixList, name='', onlyFix=onlyFix):
         fig, anx = plt.subplots(figsize=(16, 8))
         xMax, xMin = 0, 0
         for i in range(len(lineData)):
@@ -131,8 +140,10 @@ class FmiChart:
             # 获取每个点的解状态
             colors = list(map(lambda c: self._fixColor[c.astype(int)], fixList[i]))
             """ 获取采集的数据在x轴上的范围 来为不同状态的点加上特定的颜色"""
-            timeMax = max(list(map(lambda a: a.timestamp(), data.index)))
-            timeMin = min(list(map(lambda a: a.timestamp(), data.index)))
+            indexList = list(map(lambda a: a.timestamp(), data.index))
+            timeMax = max(indexList)
+            timeMin = min(indexList)
+
             if xMin == 0:
                 xMin = timeMax
             xMax = timeMax if timeMax > xMax else xMax
@@ -152,7 +163,7 @@ class FmiChart:
 
         anx.legend(fontsize='small', ncol=1)
         anx.grid(True, ls=':', c='lightgray')
-        plt.savefig(self._savePath + name + '.png')
+        plt.savefig(self._savePath + name + ('_FIX' if onlyFix else '_All') + '.png')
         # plt.show()
 
     def drawHorizontal(self, hzData, nameList, title):

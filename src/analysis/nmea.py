@@ -17,15 +17,13 @@ class GNGGAFrame:
         return self._name
 
     def nmeatime(self, date):
-        strData = str(date)
-        while len(strData) < 8:
-            strData = '0' + strData
-        time = datetime.strptime(strData, '%H%M%S.%f')
-        if self.hz == 1:
-            if (time.microsecond > 970) | time.microsecond < 30:
-                time += timedelta(seconds=1)
+        strData = str(date).split('.')
+        while len(strData[0]) < 6:
+            strData[0] = '0' + strData[0]
+        timeStr = strData[0] + "." + strData[1]
+        time = datetime.strptime(timeStr, '%H%M%S.%f')
         # 当GNGGA中出现'000000.'时，天数+=1
-        if '000000.0' in strData:
+        if ('000000.' in timeStr) & (time.microsecond / 1000 < 200):
             self._time += timedelta(days=1)
         result = time.replace(year=self._time.year, month=self._time.month, day=self._time.day)
         return result
@@ -36,42 +34,53 @@ class GNGGAFrame:
         '''
         if self.timeCheck is False:
             for time in data.loc[:, '1']:
-                if isinstance(time, str):
-                    if '000000.' in date:
-                        self._time -= timedelta(days=1)
-                elif 0.2 > time:
+                if 0.2 > time:
+                    print(" === %f" % time)
                     self._time -= timedelta(days=1)
         data.loc[:, '1'] = data.loc[:, '1'].astype(str).apply(lambda t: self.nmeatime(t))
         self._gga = data.set_index('1')
-        print(self._gga)
         self.latitude = self._gga.loc[:, '2'].astype(float).apply(lambda x: self.dmTodd(x))
         self.longitude = self._gga.loc[:, '4'].astype(float).apply(lambda x: self.dmTodd(x))
-        self.fixState = self._gga.loc[:, '6'].astype(int)
+        self.state = self._gga.loc[:, '6'].astype(int)
         self.satNum = self._gga.loc[:, '7'].astype(float)
         self.altitude = self._gga.loc[:, '9'].astype(float)
+
+        fixGGA = self._gga.loc[self._gga['6'] == 4, :]
+        self.fixLatitude = fixGGA.loc[:, '2'].astype(float).apply(lambda x: self.dmTodd(x))
+        self.fixLongitude = fixGGA.loc[:, '4'].astype(float).apply(lambda x: self.dmTodd(x))
+        self.fixAltitude = fixGGA.loc[:, '9'].astype(float)
+        self.fixState = fixGGA.loc[:, '6'].astype(int)
 
     def dmTodd(self, dm):
         dd = int(dm / 100)
         res = dd + (dm % 100) / 60
         return res
 
-    def get_fixState(self):
-        return self.fixState
-
     def get_sateNum(self):
         return self.satNum
 
-    def get_latitude(self):
+    def get_state(self, onlyFix=False):
+        if onlyFix:
+            return self.fixState
+        return self.state
+
+    def get_latitude(self, onlyFix=False):
+        if onlyFix:
+            return self.fixLatitude
         return self.latitude
 
-    def get_longitude(self):
+    def get_longitude(self, onlyFix=False):
+        if onlyFix:
+            return self.fixLongitude
         return self.longitude
 
-    def get_altitude(self):
+    def get_altitude(self, onlyFix=False):
+        if onlyFix:
+            return self.fixAltitude
         return self.altitude
 
     def getPointTruth(self):
-        fixList = self.get_fixState()
+        fixList = self.get_state()
         for i in range(len(fixList)):
             if fixList[i] == 4:
                 return [self.get_latitude()[i], self.get_longitude()[i], self.get_altitude()[i]]
@@ -81,7 +90,7 @@ class GNGGAFrame:
         latitude = self.get_latitude()
         longitude = self.get_longitude()
         altitude = self.get_altitude()
-        fixState = self.get_fixState()
+        fixState = self.get_state()
         xList, yList, xFixList, yFixList, fixList = list(), list(), list(), list(), list()
         centerLongitude = None
         for i in range(len(fixState)):
@@ -145,7 +154,6 @@ class GSV:
 
     def parseGSV(self, data):
         satellites = []
-        print(type(data))
         print(data[data['0'] == GPGSV])
         for i in range(len(GSVLIST)):
             gsv = data[data['0'] == GSVLIST[i]]

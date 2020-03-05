@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 import pandas as pd
 from pip._vendor import chardet
 from src.analysis.nmea import GNGGAFrame, GSV
-from src.chart.drawChart import FmiChart
+from src.chart.draw import FmiChart
 
 
 class AnalysisTool:
@@ -46,9 +46,9 @@ class AnalysisTool:
 
             self._GSV = df.loc[df['0'].str.contains('GSV')].copy()
             gsv = GSV(file, self._GSV)
+            # & (df['6'].astype(str) == '4')
             gga = GNGGAFrame(file, df.loc[(df['0'].astype(str) == '$GNGGA')].copy(),
                              self.localTime, 5)
-            # print(gga)
             self._ggaEntity.append(gga)
             self._GSVEntity.append(gsv)
 
@@ -61,14 +61,21 @@ class AnalysisTool:
     def drawPic(self):
         fmiChar = FmiChart(path=self._dir + '/')
         fmiChar.drawLineChart(self._ggaEntity)
-        for data in self._ggaEntity:
-            xList, yList, xFixList, yFixList, fixList = data.get_scatter()
-            fmiChar.drawScatter(data.get_name() + 'Fix', xFixList, yFixList)
-            fmiChar.drawScatter(data.get_name(), xList, yList, fixList)
-            pointTruth = data.getPointTruth()
-            fmiChar.drawCdf(self._ggaEntity, pointTruth=pointTruth, singlePoint=True)
+        print('start drawCdf %s' % datetime.strftime(datetime.now(), '%H%M%S.%f'))
+        fmiChar.drawCdf(self._ggaEntity, singlePoint=True)
+        print('end drawCdf %s' % datetime.strftime(datetime.now(), '%H%M%S.%f'))
         for gsv in self._GSVEntity:
             fmiChar.drawSateCn0(gsv.get_name(), gsv.get_satellites_status())
+        for data in self._ggaEntity:
+            xList, yList, xFixList, yFixList, fixList = data.get_scatter()
+            print('start drawScatter %s' % datetime.strftime(datetime.now(), '%H%M%S.%f'))
+            fmiChar.drawScatter(data.get_name() + 'Fix', xFixList, yFixList)
+            print('end drawScatter %s' % datetime.strftime(datetime.now(), '%H%M%S.%f'))
+            fmiChar.drawScatter(data.get_name(), xList, yList, fixList)
+            print('end drawScatter fix %s' % datetime.strftime(datetime.now(), '%H%M%S.%f'))
+        # ''' draw only Fix'''
+        print('start drawCdf fix %s' % datetime.strftime(datetime.now(), '%H%M%S.%f'))
+        fmiChar.drawCdf(self._ggaEntity, singlePoint=True, onlyFix=True)
 
 
 if __name__ == '__main__':

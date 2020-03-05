@@ -25,9 +25,9 @@ def GaussToMeter(B):
 
 
 # BLH_Degree[3] = latitude, longitude ,altitude
-def Gauss_BLHToXYH(latitude, longtidute, altitude, dCenterMeriadian):
+def Gauss_BLHToXYH(latitude, longitude, altitude, dCenterMeriadian):
     latitude = latitude * D2R
-    longitude = longtidute * D2R
+    longitude = longitude * D2R
     altitude = altitude
 
     L0 = dCenterMeriadian * D2R
