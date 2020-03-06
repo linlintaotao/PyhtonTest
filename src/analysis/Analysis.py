@@ -43,10 +43,10 @@ class AnalysisTool:
                                error_bad_lines=False,
                                low_memory=False
                                )
-
+            # 删除异常数据
+            df = df.drop(index=(df.loc[(df['1'].isna())].index))
             self._GSV = df.loc[df['0'].str.contains('GSV')].copy()
             gsv = GSV(file, self._GSV)
-            # & (df['6'].astype(str) == '4')
             gga = GNGGAFrame(file, df.loc[(df['0'].astype(str) == '$GNGGA')].copy(),
                              self.localTime, 5)
             self._ggaEntity.append(gga)
@@ -61,20 +61,14 @@ class AnalysisTool:
     def drawPic(self):
         fmiChar = FmiChart(path=self._dir + '/')
         fmiChar.drawLineChart(self._ggaEntity)
-        print('start drawCdf %s' % datetime.strftime(datetime.now(), '%H%M%S.%f'))
         fmiChar.drawCdf(self._ggaEntity, singlePoint=True)
-        print('end drawCdf %s' % datetime.strftime(datetime.now(), '%H%M%S.%f'))
         for gsv in self._GSVEntity:
             fmiChar.drawSateCn0(gsv.get_name(), gsv.get_satellites_status())
         for data in self._ggaEntity:
             xList, yList, xFixList, yFixList, fixList = data.get_scatter()
-            print('start drawScatter %s' % datetime.strftime(datetime.now(), '%H%M%S.%f'))
             fmiChar.drawScatter(data.get_name() + 'Fix', xFixList, yFixList)
-            print('end drawScatter %s' % datetime.strftime(datetime.now(), '%H%M%S.%f'))
             fmiChar.drawScatter(data.get_name(), xList, yList, fixList)
-            print('end drawScatter fix %s' % datetime.strftime(datetime.now(), '%H%M%S.%f'))
         # ''' draw only Fix'''
-        print('start drawCdf fix %s' % datetime.strftime(datetime.now(), '%H%M%S.%f'))
         fmiChar.drawCdf(self._ggaEntity, singlePoint=True, onlyFix=True)
 
 

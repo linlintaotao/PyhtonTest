@@ -45,7 +45,8 @@ class GNGGAFrame:
         self.satNum = self._gga.loc[:, '7'].astype(float)
         self.altitude = self._gga.loc[:, '9'].astype(float)
 
-        fixGGA = self._gga.loc[self._gga['6'] == 4, :]
+        fixGGA = self._gga.loc[self._gga['6'].astype(int) == 4, :]
+        print(fixGGA)
         self.fixLatitude = fixGGA.loc[:, '2'].astype(float).apply(lambda x: self.dmTodd(x))
         self.fixLongitude = fixGGA.loc[:, '4'].astype(float).apply(lambda x: self.dmTodd(x))
         self.fixAltitude = fixGGA.loc[:, '9'].astype(float)
@@ -89,15 +90,11 @@ class GNGGAFrame:
     def get_scatter(self):
         latitude = self.get_latitude()
         longitude = self.get_longitude()
-        altitude = self.get_altitude()
         fixState = self.get_state()
         xList, yList, xFixList, yFixList, fixList = list(), list(), list(), list(), list()
-        centerLongitude = None
         for i in range(len(fixState)):
-            if (centerLongitude is None) & (longitude[i] is not None) & (longitude[i] != 0):
-                centerLongitude = longitude[i]
             try:
-                x, y, z = Gauss.Gauss_BLHToXYH(latitude[i], longitude[i], altitude[i], centerLongitude)
+                x, y = Gauss.LatLon2XY(latitude[i], longitude[i])
                 xList.append(x)
                 yList.append(y)
                 fixList.append(fixState[i])
@@ -154,7 +151,6 @@ class GSV:
 
     def parseGSV(self, data):
         satellites = []
-        print(data[data['0'] == GPGSV])
         for i in range(len(GSVLIST)):
             gsv = data[data['0'] == GSVLIST[i]]
             gsd = gsv[['4', '7']].dropna()
@@ -166,7 +162,6 @@ class GSV:
             gsd4 = gsv[['16', '19']].dropna()
             gsd4.columns = ['s', 'n']
             gsvsn = gsd.append([gsd2, gsd3, gsd4], ignore_index=True, sort=False)
-            print(gsvsn)
             s = gsvsn.loc[:, 's']
             for name in set(s):
                 cn0 = gsvsn.loc[gsvsn['s'] == name].astype(int)

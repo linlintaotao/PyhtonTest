@@ -11,10 +11,10 @@ WATERMARK = "By FMI Tech"
 radius = 6371000
 D2R = 0.017453292519943295
 
-TITLES = [r'RTK north differential errors in $meters$',
-          r'RTK east differential errors in $meters$',
-          r'RTK up differential errors in $meters$',
-          r'RTK horizontal differential errors in $meters$']
+TITLES = [r'P20 north differential errors in $meters$',
+          r'P20 east differential errors in $meters$',
+          r'P20 up differential errors in $meters$',
+          r'P20 horizontal differential errors in $meters$']
 
 
 class FmiChart:
@@ -70,8 +70,9 @@ class FmiChart:
         ax.set_ylim(-axis, axis)
         plt.xlabel(r'points x (m)')
         plt.ylabel(r'points y (m)')
-        plt.title('%s Scatter View' % name)
-        plt.legend()
+        # plt.title('%s Scatter View' % name)
+        plt.title('P20 Scatter View')
+        # plt.legend()
         plt.axis('equal')
         plt.grid(True, ls=':', c='lightgray')
         plt.savefig(self._savePath + name + '.png')
@@ -90,9 +91,10 @@ class FmiChart:
             data.get_state().plot(label=data.get_name(), fontsize=9)
         plt.title(r'FixState and sateNums')
         ax1.set_ylabel('FixState', fontsize=10)
-        plt.legend()
+        ax1.set_ylim(0, 7)
+        # plt.legend(loc='low')
         plt.grid(True, ls=':', c='lightgray')
-        plt.savefig(self._savePath + 'sateNumAndFixSate.png', loc="low")
+        plt.savefig(self._savePath + 'sateNumAndFixSate.png')
         # plt.show()
 
     # pointTruth [latitude,longitude,altitude]
@@ -132,7 +134,7 @@ class FmiChart:
         self.drawNEU(u_diffList, nameList, TITLES[2], fixList, name='up', onlyFix=onlyFix)
         self.drawHorizontal(hz_diffList, nameList, TITLES[3])
 
-    def drawNEU(self, lineData, nameList, title, fixList, name='', onlyFix=onlyFix):
+    def drawNEU(self, lineData, nameList, title, fixList, name='', onlyFix=False):
         fig, anx = plt.subplots(figsize=(16, 8))
         xMax, xMin = 0, 0
         for i in range(len(lineData)):
