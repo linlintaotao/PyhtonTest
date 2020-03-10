@@ -94,7 +94,7 @@ class FmiChart:
         ax1.set_ylim(0, 7)
         # plt.legend(loc='low')
         plt.grid(True, ls=':', c='lightgray')
-        plt.savefig(self._savePath + 'sateNumAndFixSate.png')
+        plt.savefig(self._savePath + 'bsateNumAndFixSate.png')
         # plt.show()
 
     # pointTruth [latitude,longitude,altitude]
@@ -183,7 +183,7 @@ class FmiChart:
 
         axh.legend(fontsize='small', ncol=1)
         axh.grid(True, ls=':', c='lightgray')
-        fig.savefig(self._savePath + 'cdf.png')
+        fig.savefig(self._savePath + 'acdf.png')
         # plt.show()
 
     def drawSateCn0(self, name, sateCn0):

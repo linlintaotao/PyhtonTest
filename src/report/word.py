@@ -1,0 +1,63 @@
+from docx import Document
+import os
+import math
+
+
+class WordReporter:
+
+    def __init__(self, name, path, time):
+        self._name = name
+        self._time = time
+        self._path = path
+        self._pic = []
+        self._fixNum = 0
+        self._collectNum = 0
+        self._bootVersion = None
+        self._swVersion = None
+        # collectNum if collectNum != 0 else 1
+        self.read_file()
+
+    # 获取当前文件夹下的所有png文件
+    def read_file(self, tag='png'):
+        for file in os.listdir(self._path):
+            if file.endswith(tag):
+                self._pic.append(file)
+        self._pic.sort()
+
+    def setBootVersion(self, bootVersion):
+        self._bootVersion = bootVersion
+
+    def setSwVersion(self, softwareVersion):
+        self._swVersion = softwareVersion
+
+    def setFixAndAllPoints(self, fixNum, allNum):
+        self._fixNum = fixNum
+        self._collectNum = allNum
+
+    def build(self):
+        doc = Document()
+        doc.add_paragraph('P20 每日静态测试')
+        doc.add_paragraph('测试设备：%s' % self._name)
+        doc.add_paragraph('测试时间：%s' % self._time)
+        if self._bootVersion is not None:
+            doc.add_paragraph('Boot version：%s' % self._bootVersion)
+        if self._swVersion is not None:
+            doc.add_paragraph(' SW  version：%s' % self._swVersion)
+        if self._collectNum is not 0:
+            doc.add_paragraph('固定数：%d ,采集总数：%d ,固定率：%0.1f' % (self._fixNum, self._collectNum,
+                                                              float(self._fixNum / self._collectNum)))
+        doc.add_paragraph('测试结果图例')
+        print(self._pic)
+        for picture in self._pic:
+            doc.add_picture(self._path + picture)
+
+        doc.save(self._path + 'TextReport.docx')
+        pass
+
+
+if __name__ == '__main__':
+    word = WordReporter('P20', '../../data/', '20200309-20200310')
+    word.setBootVersion('1.0.1.1')
+    word.setSwVersion('12121')
+    word.setFixAndAllPoints(50, 100)
+    word.build()

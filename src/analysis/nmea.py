@@ -8,9 +8,11 @@ class GNGGAFrame:
     def __init__(self, name, data, localTime, hz=1):
         self._name = name.split('.log')[0]
         self._time = localTime
+        self._time -= timedelta(days=1)
         self.timeCheck = False
         self.hz = hz
         self._gga = None
+        self.latitude = None
         self.parseData(data)
 
     def get_name(self):
@@ -29,14 +31,15 @@ class GNGGAFrame:
         return result
 
     def parseData(self, data):
-        '''
+        """
             check gngga data timestamp and update it's type to YYmmdd-hhmmss.f
-        '''
+        """
         if self.timeCheck is False:
             for time in data.loc[:, '1']:
                 if 0.2 > time:
                     print(" === %f" % time)
                     self._time -= timedelta(days=1)
+
         data.loc[:, '1'] = data.loc[:, '1'].astype(str).apply(lambda t: self.nmeatime(t))
         self._gga = data.set_index('1')
         self.latitude = self._gga.loc[:, '2'].astype(float).apply(lambda x: self.dmTodd(x))
@@ -136,13 +139,13 @@ GSVNAME = ['G', 'C', 'R', 'E']
 
 
 class GSV:
-    '''
+    """
         GPGSV Gps
         GBGSV Beidou
         GLGSV GLONASS
         GAGSV Galileo
         gsv = '$GPGSV, 3,1,10, 10,33,308,45, 12,02,143,39, 13,16,059,40, 15,47,059,49, 1*6A'
-    '''
+    """
 
     def __init__(self, name, gsv):
         self._name = name.split('.txt')[0]
