@@ -1,3 +1,4 @@
+# coding= utf-8
 # 测试入口
 from src.analysis.Analysis import AnalysisTool
 import os

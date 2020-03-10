@@ -1,3 +1,5 @@
+# coding= utf-8
+
 import serial
 from threading import Thread
 import serial.tools.list_ports

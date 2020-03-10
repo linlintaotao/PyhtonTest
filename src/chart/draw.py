@@ -1,3 +1,4 @@
+# coding= utf-8
 # 绘图工具
 import numpy as np
 import matplotlib.pyplot as plt

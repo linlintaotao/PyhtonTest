@@ -1,5 +1,5 @@
+# coding= utf-8
 # 观察者模式
-
 
 class Publisher:
 

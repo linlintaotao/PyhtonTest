@@ -1,3 +1,5 @@
+# coding= utf-8
+
 import datetime
 import socket
 from base64 import b64encode

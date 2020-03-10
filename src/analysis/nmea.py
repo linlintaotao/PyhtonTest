@@ -1,4 +1,4 @@
-# NMEA-0183
+# coding= utf-8
 from datetime import timedelta, datetime
 from src.analysis import Gauss
 

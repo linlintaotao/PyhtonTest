@@ -1,4 +1,4 @@
-# test manager
+# coding= utf-8
 import os
 
 import serial.tools.list_ports as SerialManager

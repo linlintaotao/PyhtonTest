@@ -1,3 +1,5 @@
+# coding= utf-8
+
 # just use for test python run with jenkins
 
 import numpy as np
