@@ -2,14 +2,15 @@
 # 测试入口
 
 import os
-from src.analysis.Analysis import AnalysisTool
 import sys
+
+for path in sys.path:
+    sys.path.append(path)
+
+from src.analysis.Analysis import AnalysisTool
 
 if __name__ == '__main__':
     print(sys.path)
-
-    for path in sys.path:
-        sys.path.append(path)
 
     analysisTool = AnalysisTool(os.path.abspath('./data/'))
     analysisTool.read_file()
