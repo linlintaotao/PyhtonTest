@@ -49,7 +49,7 @@ class AnalysisTool:
             self._GSV = df.loc[df['0'].str.contains('GSV')].copy()
             gsv = GSV(file, self._GSV)
             gga = GNGGAFrame(file, df.loc[(df['0'].astype(str) == '$GNGGA')].copy(),
-                             self.localTime, 5)
+                             self.localTime)
             self._ggaEntity.append(gga)
             self._GSVEntity.append(gsv)
 

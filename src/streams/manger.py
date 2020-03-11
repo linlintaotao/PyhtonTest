@@ -11,7 +11,7 @@ from src.streams.filereader import FileWriter
 class Manager:
 
     def __init__(self):
-        self._ntrip = NtripClient(mountPoint='Obs20')
+        self._ntrip = NtripClient(mountPoint='Obs')
         self._serial_list = list()
         self.port = ''
 

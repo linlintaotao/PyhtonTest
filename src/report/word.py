@@ -58,8 +58,8 @@ class WordReporter:
 
 
 if __name__ == '__main__':
-    word = WordReporter('P20', '../../data/', '20200309-20200310')
-    word.setBootVersion('1.0.1.1')
-    word.setSwVersion('12121')
-    word.setFixAndAllPoints(50, 100)
+    word = WordReporter('P20', '../../data/', '20200310-20200311')
+    # word.setBootVersion('1.0.1.1')
+    # word.setSwVersion('12121')
+    # word.setFixAndAllPoints(50, 100)
     word.build()

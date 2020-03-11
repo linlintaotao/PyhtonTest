@@ -8,7 +8,7 @@ class GNGGAFrame:
     def __init__(self, name, data, localTime, hz=1):
         self._name = name.split('.log')[0]
         self._time = localTime
-        self._time -= timedelta(days=1)
+        # self._time -= timedelta(days=1)
         self.timeCheck = False
         self.hz = hz
         self._gga = None
@@ -24,8 +24,19 @@ class GNGGAFrame:
             strData[0] = '0' + strData[0]
         timeStr = strData[0] + "." + strData[1]
         time = datetime.strptime(timeStr, '%H%M%S.%f')
+
+        if (time.microsecond / 1000) > 900:
+            time += timedelta(seconds=1)
+            time = time.replace(microsecond=0)
+            print(time.hour)
+            print(time.minute)
+            print(time.second)
+            print(time.microsecond)
+
         # 当GNGGA中出现'000000.'时，天数+=1
-        if ('000000.' in timeStr) & (time.microsecond / 1000 < 200):
+        # if ('235959.' in timeStr) & (time.microsecond / 1000 > 900):
+        #     self._time += timedelta(days=1)
+        if (time.hour == 0) & (time.minute == 0) & (time.second == 0) & (time.microsecond == 0):
             self._time += timedelta(days=1)
         result = time.replace(year=self._time.year, month=self._time.month, day=self._time.day)
         return result
@@ -36,7 +47,7 @@ class GNGGAFrame:
         """
         if self.timeCheck is False:
             for time in data.loc[:, '1']:
-                if 0.2 > time:
+                if time > 235959.9:
                     print(" === %f" % time)
                     self._time -= timedelta(days=1)
 
