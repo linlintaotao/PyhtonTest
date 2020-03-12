@@ -43,6 +43,8 @@ class SerialPort:
     def read_data(self):
         data = self._entity.readline()
         if len(data) <= 0:
+
+
             return None
         if self._showLog is True:
             # print("show log = %s" % data)
