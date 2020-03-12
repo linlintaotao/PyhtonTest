@@ -39,11 +39,11 @@ class Manager:
             except:
                 # print("can not use seial %s" % serialName)
                 continue
-            file = FileWriter(
-                serialName.split('-')[-1] + '-' + time.strftime('%Y%m%d-%H:%M:%S',
-                                                                time.localtime(time.time())) + ".log",
-                dir=os.path.abspath('../../data'))
-            serial.setFile(file)
+            # file = FileWriter(
+            #     serialName.split('-')[-1] + '-' + time.strftime('%Y%m%d-%H:%M:%S',
+            #                                                     time.localtime(time.time())) + ".log",
+            #     dir=os.path.abspath('../../data'))
+            # serial.setFile(file)
             self._serial_list.append(serial)
             self._ntrip.register(serial)
 
