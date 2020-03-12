@@ -28,7 +28,8 @@ class SerialPort:
         try:
             self._entity.open()
         except:
-            raise IOError(f'can not open serial{self._port}:{self._baudRate}')
+            # raise IOError(f'can not open serial{self._port}:{self._baudRate}')
+            pass
 
     def close_serial(self):
         self._entity.close()
