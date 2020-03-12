@@ -2,10 +2,10 @@
 
 import serial
 from threading import Thread
+import serial.tools.list_ports
 
 
 class SerialPort:
-
     def __init__(self, iport, fileWriter=None, baudRate=115200, showLog=False):
         self._port = iport
         self._baudRate = baudRate
