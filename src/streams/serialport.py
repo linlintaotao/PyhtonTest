@@ -2,7 +2,6 @@
 
 import serial
 from threading import Thread
-import serial.tools.list_ports
 
 
 class SerialPort:
@@ -69,17 +68,3 @@ class SerialPort:
             self._read_thread = None
         self._read_thread = Thread(target=self.read_thread)
         self._read_thread.start()
-
-
-# code under this line is just for test
-def get_port_list():
-    return list(serial.tools.list_ports.comports())
-
-
-if __name__ == '__main__':
-    port = ''
-    for i in get_port_list():
-        line = list(i)
-        print(line[0])
-        port = line[0]
-    serialPort = SerialPort(port, 9600)

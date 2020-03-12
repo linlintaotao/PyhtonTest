@@ -1,16 +1,17 @@
 # coding= utf-8
 import os
 
-import serial.tools.list_ports as SerialManager
+# import serial.tools.list_ports as SerialManager
 import time
 from src.streams.Ntrip import NtripClient
 from src.streams.serialport import SerialPort
 from src.streams.filereader import FileWriter
+from serial.tools import list_ports
 
 
 def find_serial():
     serialNameList = []
-    portList = list(SerialManager.comports())
+    portList = list(list_ports.comports())
     for i in portList:
         serialPath = list(i)[0]
         if 'Bluetooth' not in serialPath:
