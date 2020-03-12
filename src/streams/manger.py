@@ -38,7 +38,7 @@ class Manager:
             try:
                 serial.start()
             except:
-                print("can not use seial %s" % serialName)
+                # print("can not use seial %s" % serialName)
                 continue
             file = FileWriter(
                 serialName.split('-')[-1] + '-' + time.strftime('%Y%m%d-%H:%M:%S',

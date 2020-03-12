@@ -37,7 +37,7 @@ class SerialPort:
             self._file.close()
 
     def send_data(self, data):
-        print("send data = %s" % str(data))
+        # print("send data = %s" % str(data))
         self._entity.write(data)
 
     def read_data(self):
@@ -45,7 +45,8 @@ class SerialPort:
         if len(data) <= 0:
             return None
         if self._showLog is True:
-            print("show log = %s" % data)
+            # print("show log = %s" % data)
+            pass
         if self._file:
             self._file.write(data)
         return data
@@ -55,7 +56,8 @@ class SerialPort:
             if self._entity.is_open:
                 self._entity.write(data)
         except Exception as e:
-            print(e)
+            # print(e)
+            pass
 
     def read_thread(self):
         while self._entity.is_open:
