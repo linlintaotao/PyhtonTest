@@ -46,6 +46,7 @@ class SerialPort:
             return None
         if self._showLog is True:
             # print("show log = %s" % data)
+            print(data)
             pass
         if self._file:
             self._file.write(data)
