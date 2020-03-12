@@ -4,10 +4,19 @@
 import os
 import sys
 from src.analysis.Analysis import AnalysisTool
+from src.streams.manger import Manager
+
+
+def startTest():
+    manager = Manager()
+    manager.start()
+
 
 if __name__ == '__main__':
-    analysisTool = AnalysisTool(os.path.abspath('./data/'))
+    startTest()
+
+    # analysisTool = AnalysisTool(os.path.abspath('./data/'))
     # analysisTool.read_file()
     # analysisTool.analysis()
-    print('Hello world')
+    print('Test is Finished')
     pass

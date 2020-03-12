@@ -28,10 +28,6 @@ class GNGGAFrame:
         if (time.microsecond / 1000) > 900:
             time += timedelta(seconds=1)
             time = time.replace(microsecond=0)
-            print(time.hour)
-            print(time.minute)
-            print(time.second)
-            print(time.microsecond)
 
         # 当GNGGA中出现'000000.'时，天数+=1
         # if ('235959.' in timeStr) & (time.microsecond / 1000 > 900):
@@ -189,6 +185,3 @@ class GSV:
     def get_name(self):
         return self._name
 
-
-if __name__ == '__main__':
-    gsv = GSV()

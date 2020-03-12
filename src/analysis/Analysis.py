@@ -14,6 +14,7 @@ class AnalysisTool:
         self._dir = dir
         self.localTime = datetime.now().date()
         self.timeCheck = False
+        self.fileList = list()
         self._dataFiles = list()
         self._ggaEntity = list()
         self._GSVEntity = list()
@@ -23,6 +24,7 @@ class AnalysisTool:
         for file in os.listdir(self._dir):
             if file.endswith(tag):
                 self._dataFiles.append(file)
+                self.fileList.append(file.split('.log')[0])
 
     # 获取文件编码类型
     def get_encoding(self, file):
@@ -30,14 +32,14 @@ class AnalysisTool:
         with open(file, 'rb') as f:
             return chardet.detect(f.read())['encoding']
 
-    def analysis(self):
-        for file in self._dataFiles:
-            '''
-                we put 20 names because it's NMEA-0183 Data, each line has different num with step ','  
-            '''
-            print(self._dir + '/' + file)
-            df = pd.read_table(self._dir + '/' + file, sep=',',
-                               encoding=self.get_encoding(self._dir + '/' + file),
+    def analysis(self, ):
+        for fileName in self.fileList:
+            """
+                we put 20 names because it's NMEA-0183 Data, each line has different num with step ','
+            """
+            print(self._dir + '/' + fileName)
+            df = pd.read_table(self._dir + '/' + fileName+'.log', sep=',',
+                               encoding=self.get_encoding(self._dir + '/' + fileName + '.log'),
                                header=None,
                                names=['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
                                       '11', '12', '13', '14', '15', '16', '17', '18', '19', '20'],
@@ -45,22 +47,25 @@ class AnalysisTool:
                                low_memory=False
                                )
             # 删除异常数据
-            df = df.drop(index=(df.loc[(df['1'].isna())].index))
-            self._GSV = df.loc[df['0'].str.contains('GSV')].copy()
-            gsv = GSV(file, self._GSV)
-            gga = GNGGAFrame(file, df.loc[(df['0'].astype(str) == '$GNGGA')].copy(),
+            df = df.drop(index=df.loc[(df['1'].isna())].index)
+            # self._GSV = df.loc[df['0'].str.contains('GSV')].copy()
+            gsv = GSV(fileName, df.loc[df['0'].str.contains('GSV')].copy())
+            gga = GNGGAFrame(fileName, df.loc[(df['0'].astype(str) == '$GNGGA')].copy(),
                              self.localTime)
             self._ggaEntity.append(gga)
             self._GSVEntity.append(gsv)
 
-        self.drawPic()
+            self.drawPic(fileName)
 
     def analysisGSV(self):
 
         pass
 
-    def drawPic(self):
-        fmiChar = FmiChart(path=self._dir + '/')
+    def drawPic(self, fileName):
+        dirPath = self._dir + '/' + fileName + '/'
+        if os.path.exists(dirPath) is False:
+            os.mkdir(dirPath)
+        fmiChar = FmiChart(path=dirPath)
         fmiChar.drawLineChart(self._ggaEntity)
         fmiChar.drawCdf(self._ggaEntity, singlePoint=True)
         for gsv in self._GSVEntity:

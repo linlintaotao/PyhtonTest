@@ -7,21 +7,23 @@ import serial.tools.list_ports
 
 class SerialPort:
 
-    def __init__(self, iport, fileWriter, baudRate=115200, showLog=False):
+    def __init__(self, iport, fileWriter=None, baudRate=115200, showLog=False):
         self._port = iport
         self._baudRate = baudRate
-        print(f'open serial {iport}:{baudRate}')
         # self.open_serial()
         self._showLog = showLog
         self._read_thread = None
         self._entity = None
         self._file = fileWriter
 
+    def setFile(self, fileWriter):
+        self._file = fileWriter
+
     def is_running(self):
         return self._entity.isOpen()
 
     def open_serial(self):
-        self._entity = serial.Serial(self._port, self._baudRate, timeout=1)
+        self._entity = serial.Serial(self._port, self._baudRate, timeout=3)
         if self._entity.isOpen():
             self._entity.close()
         try:
@@ -31,10 +33,11 @@ class SerialPort:
 
     def close_serial(self):
         self._entity.close()
-        self._file.close()
+        if self._file:
+            self._file.close()
 
     def send_data(self, data):
-        print("send data =" + str(data))
+        print("send data = %s" % str(data))
         self._entity.write(data)
 
     def read_data(self):
@@ -43,7 +46,8 @@ class SerialPort:
             return None
         if self._showLog is True:
             print("show log = %s" % data)
-        self._file.write(data)
+        if self._file:
+            self._file.write(data)
         return data
 
     def notify(self, data):

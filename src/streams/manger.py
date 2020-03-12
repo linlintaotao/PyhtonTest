@@ -8,40 +8,56 @@ from src.streams.serialport import SerialPort
 from src.streams.filereader import FileWriter
 
 
+def find_serial():
+    serialNameList = []
+    portList = list(SerialManager.comports())
+    for i in portList:
+        serialPath = list(i)[0]
+        if 'Bluetooth' not in serialPath:
+            print(serialPath)
+            serialNameList.append(serialPath)
+    return serialNameList
+
+
 class Manager:
 
     def __init__(self):
         self._ntrip = NtripClient(mountPoint='Obs')
         self._serial_list = list()
-        self.port = ''
-
-    def find_serial(self):
-        portList = list(SerialManager.comports())
-        # just for test
-        for i in portList:
-            line = list(i)
-            print(line)
-            print(line[0])
-            self.port = line[0]
-        return 'Bluetooth' not in self.port
+        self.portList = list()
 
     def start(self):
-        file = FileWriter(
-            self.port.split('/')[-1] + '-' + time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(time.time())) + ".log",
-            dir=os.path.abspath('../../data'))
-        serial = SerialPort(iport=self.port, fileWriter=file, baudRate=115200, showLog=True)
-        self._serial_list.append(serial)
-        self._ntrip.register(serial)
-        for serial in self._serial_list:
-            serial.start()
-        self._ntrip.start()
+        serialList = find_serial()
 
-    def stop(self):
-        pass
+        if len(serialList) <= 0:
+            return False
+        for serialName in serialList:
+
+            serial = SerialPort(iport=serialName, baudRate=115200, showLog=True)
+            try:
+                serial.start()
+            except:
+                print("can not use seial %s" % serialName)
+                continue
+            file = FileWriter(
+                serialName.split('-')[-1] + '-' + time.strftime('%Y%m%d-%H:%M:%S',
+                                                                time.localtime(time.time())) + ".log",
+                dir=os.path.abspath('../../data'))
+            serial.setFile(file)
+            self._serial_list.append(serial)
+            self._ntrip.register(serial)
+
+        self._ntrip.start()
+        return True
+
+
+def stop(self):
+    for serialPort in self._serial_list:
+        if serialPort is not None:
+            serialPort.stop()
+    self._ntrip.stop()
 
 
 if __name__ == '__main__':
     manager = Manager()
-    isFound = manager.find_serial()
-    if isFound is True:
-        manager.start()
+    manager.start()
