@@ -82,7 +82,7 @@ class NtripClient(Publisher):
                      self.flagE, self._height)
         checksum = self.check_sum(ggaString)
         ggaStr = "$%s*%s\r\n" % (ggaString, checksum)
-        print(ggaStr)
+        print('sendGGAString',ggaStr)
         return ggaStr.encode()
 
     def check_sum(self, stringToCheck):

@@ -22,7 +22,7 @@ def find_serial():
 class Manager:
 
     def __init__(self):
-        self._ntrip = NtripClient(mountPoint='Obs_yf')
+        self._ntrip = NtripClient(ip='219.142.87.107', port=81, mountPoint='XWNET20')
         self._serial_list = list()
         self.portList = list()
 
@@ -33,14 +33,12 @@ class Manager:
             return False
 
         start()
-
         timeStr = time.strftime('%Y%m%d-%H:%M:%S', time.localtime(time.time()))
         serialName = '/dev/cu.usbserial-1420'
         serial = SerialPort(iport=serialName, baudRate=115200, showLog=True)
         try:
             serial.start()
             serial.setCallback(switch)
-
         except:
             pass
 
