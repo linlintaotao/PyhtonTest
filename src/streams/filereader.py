@@ -30,6 +30,8 @@ class FileWriter:
 
     def write(self, data):
         if self.state is True:
+            if type(data) is str:
+                data = data.encode()
             self._entity.write(data)
             self._entity.flush()
 

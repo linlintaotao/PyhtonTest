@@ -1,6 +1,7 @@
 # coding= utf-8
 
 from docx import Document
+from docx.shared import Inches
 import os
 import math
 
@@ -47,7 +48,7 @@ class WordReporter:
 
     def build(self, fileName, dirName, pictures):
         doc = Document()
-        doc.add_paragraph('P20 每日静态测试')
+        doc.add_paragraph(fileName + ' 1h静态测试')
         doc.add_paragraph('测试设备：%s' % self._name)
         doc.add_paragraph('测试时间：%s' % self._time)
         if self._bootVersion is not None:
@@ -56,18 +57,21 @@ class WordReporter:
             doc.add_paragraph(' SW  version：%s' % self._swVersion)
         if self._collectNum is not 0:
             doc.add_paragraph('固定数：%d ,采集总数：%d ,固定率：%0.1f' % (self._fixNum, self._collectNum,
-                                                              float(self._fixNum / self._collectNum)))
+                                                              round(self._fixNum / self._collectNum*100,2)))
+        doc.add_paragraph('测试误差：0~0.02m 占比 94% ,0.02~0.05m 占比 5%')
+        doc.add_paragraph('基站距离 42km')
+
         doc.add_paragraph('测试结果图例')
         for picture in pictures:
-            doc.add_picture(dirName + '/' + picture)
+            doc.add_picture(dirName + '/' + picture, Inches(6), Inches(4))
 
         doc.save(self._path + '/' + fileName + '.docx')
         pass
 
 
 if __name__ == '__main__':
-    word = WordReporter('P20', '../../data/', '20200310-20200311')
-    # word.setBootVersion('1.0.1.1')
-    # word.setSwVersion('12121')
-    # word.setFixAndAllPoints(50, 100)
+    word = WordReporter('P20-8130', '../../data/', '20200416')
+    # word.setBootVersion('RTK v.1.3.0.ss0415-1400-auto-rtk-mode_min23_50_wraw-base-931d43')
+    word.setSwVersion('RTK v.1.3.0.ss0416-1055-auto-rtk-mode_min23_50_wraw-base-fd9815')
+    word.setFixAndAllPoints(48658, 49750)
     word.start()

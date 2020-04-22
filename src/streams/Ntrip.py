@@ -11,12 +11,13 @@ from src.observer.publish import Publisher
 
 class NtripClient(Publisher):
 
-    def __init__(self, ip='ntrips.feymani.cn', port=2102, user='feyman-user', password=123456, mountPoint='',
+    def __init__(self, ip='ntrips.feymani.cn', port=2102, user='feyman-user', password=123456, mountPoint='Obs',
                  latitude=40, longitude=116, altitude=54.6):
         Publisher.__init__(self)
         '''
         parameters
         '''
+        print(ip)
         self._ip = ip
         self._port = port
         self._user = user
@@ -151,6 +152,7 @@ class NtripClient(Publisher):
     def check(self):
 
         while self._stopByUser is False:
+            self._reconnectLimit += 1
             if (self._reconnectLimit > 5) | self._reconnect is True:
                 self.reconnect()
             sleep(5)
@@ -164,5 +166,5 @@ class NtripClient(Publisher):
 
 
 if __name__ == '__main__':
-    ntrip = NtripClient(mountPoint='Obs')
+    ntrip = NtripClient(ip='219.142.87.107', port=81, mountPoint='XWNET20')
     ntrip.start()

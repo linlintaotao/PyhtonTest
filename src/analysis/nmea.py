@@ -42,7 +42,7 @@ class GNGGAFrame:
             check gngga data timestamp and update it's type to YYmmdd-hhmmss.f
         """
         if self.timeCheck is False:
-            for time in data.loc[:, '1']:
+            for time in data.loc[:, '1'].astype(float):
                 if time > 235959.9:
                     print(" === %f" % time)
                     self._time -= timedelta(days=1)
@@ -155,7 +155,7 @@ class GSV:
     """
 
     def __init__(self, name, gsv):
-        self._name = name.split('.txt')[0]
+        self._name = name.split('.log')[0]
         self._satellites = self.parseGSV(gsv)
         # print(self._gsv)
 
@@ -184,4 +184,3 @@ class GSV:
 
     def get_name(self):
         return self._name
-
