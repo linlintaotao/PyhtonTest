@@ -10,6 +10,7 @@ maxCount = 1e4
 
 class SerialPort:
     def __init__(self, iport, fileWriter=None, baudRate=115200, showLog=False):
+        self.zeroCount = 0
         self._port = iport
         self._baudRate = baudRate
         self._showLog = showLog
@@ -21,9 +22,14 @@ class SerialPort:
         self.serialDemo = []
         self.callback = None
         self.fixCount = maxCount
+        self.supportListener = None
+        self.checkedSupportFmi = False
 
     def setCallback(self, callback):
         self.callback = callback
+
+    def setSupportFmi(self, supportListener):
+        self.supportListener = supportListener
 
     def getPort(self):
         return self._port
@@ -46,6 +52,7 @@ class SerialPort:
             pass
 
     def close_serial(self):
+        self._read_thread.stop()
         self._entity.close()
         if self._file:
             self._file.close()
@@ -59,15 +66,20 @@ class SerialPort:
 
     def read_data(self):
         data = self._entity.readline()
+        if self.checkedSupportFmi:
+            if "\r\n" in str(data):
+                self.checkedSupportFmi = False
+                self.supportListener(self,)
+
         if len(data) <= 0:
             return None
         if self._showLog is True:
             print(data)
-            self.autoTest(data)
-            pass
+            if self.callback is not None:
+                self.autoTest(data)
         if self._file:
             self._file.write(data)
-        return data
+        # return data
 
     def notify(self, data):
         try:
@@ -91,26 +103,28 @@ class SerialPort:
         self._read_thread.start()
 
     def autoTest(self, data):
-
-        if '+++ license activated' in str(data):
+        strData = str(data)
+        if '+++ license activated' in strData:
             self.connectTimes = 0
-            self.fixCount = 50
+            self.fixCount = 5
+            self.zeroCount = 0
 
-        if ('E,9' in str(data)) | ('E,4' in str(data)):
+        elif ('GNGGA' in strData) & ('E,0' in strData):
+            self.zeroCount += 1
+            if self.zeroCount > 200:
+                self.zeroCount = 0
+                self.connectTimes = 0
+                self.fixCount = maxCount
+                self._file.write("zero >200 Restart")
+                self.callback()
+
+        elif 'E,4' in strData:
             self.connectTimes += 1
             if self.connectTimes > self.fixCount:
                 self.connectTimes = 0
+                self.zeroCount = 0
                 self.fixCount = maxCount
                 self.callback()
-
-    # def switch(self):
-    #     # if self.mSerial.is_open:
-    #     #     self.mSerial.close()
-    #     # self.mSerial.open()
-    #     self.mSerial.write(bytes.fromhex("A0 01 00 A1"))
-    #     time.sleep(2)
-    #     self.mSerial.write(bytes.fromhex("A0 01 01 A2"))
-    #     # self.mSerial.close()
 
     def warmStart(self):
         self.send_data('AT+WARM_RESET\r\n')

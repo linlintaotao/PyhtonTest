@@ -10,7 +10,7 @@ from src.chart.draw import FmiChart
 
 class AnalysisTool:
 
-    def __init__(self, dir=os.path.abspath('../../data/')):
+    def __init__(self, dir=os.path.abspath('..') + "/data"):
         self._dir = dir
         self.localTime = datetime.now().date()
         self.timeCheck = False

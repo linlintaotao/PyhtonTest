@@ -11,7 +11,7 @@ from src.observer.publish import Publisher
 
 class NtripClient(Publisher):
 
-    def __init__(self, ip='ntrips.feymani.cn', port=2102, user='feyman-user', password=123456, mountPoint='Obs',
+    def __init__(self, ip='ntrips.feymani.cn', port=2102, user='feyman-user', password="123456", mountPoint='',
                  latitude=40, longitude=116, altitude=54.6):
         Publisher.__init__(self)
         '''
@@ -38,6 +38,7 @@ class NtripClient(Publisher):
         data
         '''
         self._data = Queue()
+        self._socket = None
 
     def setPosition(self, lat, lon):
         self.flagN = "N"
@@ -82,7 +83,7 @@ class NtripClient(Publisher):
                      self.flagE, self._height)
         checksum = self.check_sum(ggaString)
         ggaStr = "$%s*%s\r\n" % (ggaString, checksum)
-        print('sendGGAString',ggaStr)
+        print('sendGGAString', ggaStr)
         return ggaStr.encode()
 
     def check_sum(self, stringToCheck):
@@ -97,8 +98,12 @@ class NtripClient(Publisher):
 
         if self._isRunning is True:
             return
-
+        self._reconnect = False
         try:
+
+            if self._socket is not None:
+                self._socket.close()
+
             self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
             self._socket.connect((self._ip, self._port))
@@ -133,8 +138,8 @@ class NtripClient(Publisher):
                     self._reconnectLimit = 0
                     # 通知所有的串口进行刷新
                     self.notifyAll(data)
+                print(data)
                 sleep(0.5)
-                # print(data)
             except Exception as e:
                 self._reconnect = True
                 self._reconnectLimit += 5
@@ -166,5 +171,5 @@ class NtripClient(Publisher):
 
 
 if __name__ == '__main__':
-    ntrip = NtripClient(ip='219.142.87.107', port=81, mountPoint='XWNET20')
+    ntrip = NtripClient(ip='lab.ntrip.qxwz.com', port=8002, user="stmicro0010", password='50fcc29', mountPoint='', )
     ntrip.start()
