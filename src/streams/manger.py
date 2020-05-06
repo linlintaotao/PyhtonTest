@@ -24,19 +24,19 @@ def find_serial():
 class Manager:
 
     def __init__(self):
-        self._ntrip = NtripClient(mountPoint='Obs')
-        self._serial_list = list()
+        self.ntrip = NtripClient(mountPoint='Obs')
+        self.serial_list = list()
         self.portList = list()
         self.timeStr = ""
 
     def start(self, powerTest=False):
-        serialList = find_serial()
+        self.serial_list = find_serial()
 
-        if len(serialList) <= 0:
+        if len(self.serialList) <= 0:
             return
         if powerTest:
             powerOn()
-        for serialName in serialList:
+        for serialName in self.serialList:
             serialEntity = SerialPort(iport=serialName, baudRate=115200, showLog=True)
             try:
                 serialEntity.start()
@@ -49,16 +49,16 @@ class Manager:
             except Exception as e:
                 print(e)
 
-        self._ntrip.start()
+        self.ntrip.start()
 
     def sendOrder(self, order):
-        for serialEntity in self._serial_list:
+        for serialEntity in self.serial_list:
             serialEntity.send_data(order)
             pass
 
     def stop(self):
-        self._ntrip.stop()
-        for serialPort in self._serial_list:
+        self.ntrip.stop()
+        for serialPort in self.serial_list:
             if serialPort is not None:
                 serialPort.close_serial()
 
@@ -67,8 +67,8 @@ def checkSerialIsSupport(serialUse):
     file = FileWriter(
         serialUse.serialName.split('-')[-1] + '-' + timeStr + ".log", dir=os.path.abspath('../../data'))
     serialUse.setFile(file, timeStr)
-    self._serial_list.append(serialUse)
-    self._ntrip.register(serialUse)
+    # manager.serial_list.append(serialUse)
+    manager.ntrip.register(serialUse)
 
 
 def switch():
@@ -98,7 +98,7 @@ if __name__ == '__main__':
     timeStr = time.strftime('%Y%m%d-%H%M%S', time.localtime(time.time()))
     try:
         manager.start()
-        # manager.sendOrder("AT+READ_PARA\r\n")
+        manager.sendOrder("AT+READ_PARA\r\n")
     except Exception as e:
         manager.stop()
         stop()

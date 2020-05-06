@@ -138,7 +138,7 @@ class NtripClient(Publisher):
                     self._reconnectLimit = 0
                     # 通知所有的串口进行刷新
                     self.notifyAll(data)
-                print(data)
+                # print(data)
                 sleep(0.5)
             except Exception as e:
                 self._reconnect = True

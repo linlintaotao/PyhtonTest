@@ -20,8 +20,9 @@ def startAnalysis():
 
 
 def buildReport():
-    word = WordReporter()
-    word.start()
+    # word = WordReporter()
+    # word.start()
+    pass
 
 
 if __name__ == '__main__':
