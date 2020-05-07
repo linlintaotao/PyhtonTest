@@ -13,7 +13,6 @@ class FileWriter:
         self._dir = dir
         self._name = name
         self._path = os.path.join(dir, name)
-        # print(self._path)
         self._entity = None
         self.state = False
         self.open()
@@ -21,7 +20,6 @@ class FileWriter:
     def open(self):
         try:
             self._entity = open(self._path, 'wb')
-            # print('open file')
             self.state = True
         except Exception as e:
             # print(f'open file %s error %s' % (self._name, e))
@@ -40,3 +38,9 @@ class FileWriter:
             self.state = False
             self._entity.flush()
             self._entity.close()
+
+
+if __name__ == '__main__':
+    FileWriter(
+        "test.log",
+        dir=os.path.abspath('../..') + "/data/")

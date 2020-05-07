@@ -64,9 +64,8 @@ class AnalysisTool:
                              self.localTime)
             self._ggaEntity.append(gga)
             # self._GSVEntity.append(gsv)
-            self.drawPic(dirPath)
-
-            """ 生成word文档"""
+        self.drawPic("dirPath")
+        """ 生成word文档"""
 
     def analysisGSV(self):
 

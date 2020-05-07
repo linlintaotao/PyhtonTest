@@ -25,6 +25,7 @@ class FmiChart:
         self._name = name
         self._savePath = path
         self._fixColor = ['black', 'black', 'red', 'gray', 'green', 'blue', 'yellow']
+        self._resultInfo = ""
 
     ''' 获取绘图的最小精度 0.01~ 1000 (m)'''
 
@@ -35,6 +36,9 @@ class FmiChart:
                 accuracyItem = accuracyItems[i]
                 return accuracyItem
         return accuracyItems[-1]
+
+    def getResultInfo(self):
+        return self._resultInfo
 
     ''' 画测试结果的结果点位图 
         name : 测试的数据来源
@@ -154,6 +158,8 @@ class FmiChart:
                                                                (x - pointTruth[1]) * D2R * radius *
                                                                np.cos(pointTruth[0]) * D2R)
         u_diff = dataFram.get_altitude(onlyFix=onlyFix).apply(lambda x: x - pointTruth[2])
+
+
         n_diffList.append(n_diff)
         e_diffList.append(e_diff)
         u_diffList.append(u_diff)

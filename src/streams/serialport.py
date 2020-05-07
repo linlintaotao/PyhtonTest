@@ -23,13 +23,17 @@ class SerialPort:
         self.callback = None
         self.fixCount = maxCount
         self.supportListener = None
-        self.checkedSupportFmi = False
+        self.checkedSupportFmi = True
+        self.isRunning = True
 
     def setCallback(self, callback):
         self.callback = callback
 
     def setSupportFmi(self, supportListener):
         self.supportListener = supportListener
+
+    def getSupportFmi(self):
+        return self.checkedSupportFmi
 
     def getPort(self):
         return self._port
@@ -39,20 +43,21 @@ class SerialPort:
         self._file.write('StartTime =' + timeStr + '\r\n')
 
     def is_running(self):
-        return self._entity.isOpen()
+        return self._entity.isOpen() & self.isRunning
 
     def open_serial(self):
-        self._entity = serial.Serial(self._port, self._baudRate, timeout=3)
-        if self._entity.isOpen():
-            self._entity.close()
         try:
+            print("open",self._port)
+            self._entity = serial.Serial(self._port, self._baudRate, timeout=3)
+            print("open",self._port)
+            if self._entity.isOpen():
+                self._entity.close()
             self._entity.open()
         except:
             raise IOError(f'can not open serial{self._port}:{self._baudRate}')
-            pass
 
     def close_serial(self):
-        self._read_thread.stop()
+        self.isRunning = False
         self._entity.close()
         if self._file:
             self._file.close()
@@ -65,11 +70,17 @@ class SerialPort:
             self._entity.write(data)
 
     def read_data(self):
-        data = self._entity.readline()
+        try:
+            print("read data = s")
+
+            data = self._entity.readline()
+        except Exception as e:
+            print(e)
+            return
         if self.checkedSupportFmi:
-            if "\r\n" in str(data):
+            if b"\r\n" in data:
                 self.checkedSupportFmi = False
-                self.supportListener(self,)
+                self.supportListener(self._port)
 
         if len(data) <= 0:
             return None
@@ -78,6 +89,7 @@ class SerialPort:
             if self.callback is not None:
                 self.autoTest(data)
         if self._file:
+            # print("write data = %s" % str(data))
             self._file.write(data)
         # return data
 
@@ -90,13 +102,13 @@ class SerialPort:
             pass
 
     def read_thread(self):
-        while self._entity.is_open:
+        while self._entity.is_open & self.isRunning:
             self.read_data()
 
     def start(self):
         if self._entity is None:
             self.open_serial()
-
+        print("start")
         if self._read_thread is None:
             self._read_thread = None
         self._read_thread = Thread(target=self.read_thread)
@@ -104,6 +116,9 @@ class SerialPort:
 
     def autoTest(self, data):
         strData = str(data)
+
+        print("+++++", self.fixCount)
+
         if '+++ license activated' in strData:
             self.connectTimes = 0
             self.fixCount = 5
@@ -132,7 +147,3 @@ class SerialPort:
         self.sendTimes += 1
         self._file.write("Warm Restart Time= %s : %d\r\n" % (timeNow, self.sendTimes))
         self.connectTimes = 0
-
-    def __del__(self):
-        self._entity.close()
-        self._read_thread.stop()

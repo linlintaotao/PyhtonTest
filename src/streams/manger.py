@@ -6,6 +6,7 @@ import time
 from src.streams.Ntrip import NtripClient
 from src.streams.serialport import SerialPort
 from src.streams.filereader import FileWriter
+from threading import Thread
 
 mSerial = None
 
@@ -13,6 +14,7 @@ mSerial = None
 def find_serial():
     serialNameList = []
     portList = list(SerialManager.comports())
+    print(portList)
     for i in portList:
         serialPath = list(i)[0]
         print(serialPath)
@@ -23,20 +25,27 @@ def find_serial():
 
 class Manager:
 
-    def __init__(self):
+    def __init__(self, dir=os.path.abspath('../..') + "/data/"):
+        self.dir = dir
         self.ntrip = NtripClient(mountPoint='Obs')
         self.serial_list = list()
         self.portList = list()
         self.timeStr = ""
 
     def start(self, powerTest=False):
-        self.serial_list = find_serial()
+        serial_name_list = find_serial()
 
-        if len(self.serialList) <= 0:
+        if len(serial_name_list) <= 0:
             return
         if powerTest:
             powerOn()
-        for serialName in self.serialList:
+        for serialName in serial_name_list:
+            # print(serialName)
+            # if powerTest:
+            #     if serialName != "/dev/cu.usbserial":
+            #         continue
+            # print(2,serialName)
+
             serialEntity = SerialPort(iport=serialName, baudRate=115200, showLog=True)
             try:
                 serialEntity.start()
@@ -48,7 +57,8 @@ class Manager:
 
             except Exception as e:
                 print(e)
-
+                continue
+            manager.serial_list.append(serialEntity)
         self.ntrip.start()
 
     def sendOrder(self, order):
@@ -62,13 +72,34 @@ class Manager:
             if serialPort is not None:
                 serialPort.close_serial()
 
+    def serialList(self):
+        return self.serial_list
 
-def checkSerialIsSupport(serialUse):
-    file = FileWriter(
-        serialUse.serialName.split('-')[-1] + '-' + timeStr + ".log", dir=os.path.abspath('../../data'))
-    serialUse.setFile(file, timeStr)
-    # manager.serial_list.append(serialUse)
-    manager.ntrip.register(serialUse)
+    def getDir(self):
+        return self.dir
+
+
+def checkSerialIsSupport(port):
+    print(port)
+    for serial_entity in manager.serialList():
+        print(port, serial_entity.getPort())
+        if port == serial_entity.getPort():
+            file = FileWriter(
+                serial_entity.getPort().split('/')[-1] + '-' + timeStr + ".log",
+                manager.getDir())
+            serial_entity.setFile(file, timeStr)
+            manager.ntrip.register(serial_entity)
+
+
+def close_unSupport():
+    time.sleep(30)
+    for serial_entity in manager.serialList():
+        if not serial_entity.getSupportFmi():
+            continue
+        print(serial_entity.getPort(), "stop")
+
+        if serial_entity.is_running():
+            serial_entity.close_serial()
 
 
 def switch():
@@ -94,11 +125,13 @@ def stop():
 if __name__ == '__main__':
     mSerial = serial.Serial('/dev/cu.usbserial-1420', 9600)
     manager = Manager()
-    find_serial()
-    timeStr = time.strftime('%Y%m%d-%H%M%S', time.localtime(time.time()))
-    try:
-        manager.start()
-        manager.sendOrder("AT+READ_PARA\r\n")
-    except Exception as e:
-        manager.stop()
-        stop()
+    timeStr = time.strftime('%Y%m%d_%H%M%S', time.localtime(time.time()))
+
+    # try:
+    manager.start(powerTest=True)
+        # manager.sendOrder("AT+READ_PARA\r\n")
+        # thread = Thread(close_unSupport())
+        # thread.start()
+    # except Exception as e:
+    #     manager.stop()
+    #     stop()
