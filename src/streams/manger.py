@@ -30,7 +30,7 @@ class Manager:
 
     def __init__(self, dir=os.path.abspath('../..') + "/data/"):
         self.dir = dir
-        self.ntrip = NtripClient(mountPoint='Obs')
+        self.ntrip = NtripClient(mountPoint='Obs_30')
         self.serial_list = list()
         self.portList = list()
         self.timeStr = time.strftime('%Y%m%d_%H%M%S', time.localtime(time.time()))
