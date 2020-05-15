@@ -92,7 +92,7 @@ class Manager:
 
 
 def checkSerialIsSupport(port):
-    print(port)
+    # print(port)
     for serial_entity in Manager.instance().serialList():
         print(port, serial_entity.getPort())
         if port == serial_entity.getPort():

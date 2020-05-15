@@ -52,7 +52,7 @@ class AnalysisTool:
             """
                 we put 20 names because it's Feyman-0183 Data, each line has different num with step ','
             """
-            print(self._dir + '/' + fileName)
+            # print(self._dir + '/' + fileName)
             fileName = dirPath + '.log'
             df = pd.read_table(fileName, sep=',',
                                encoding=self.get_encoding(fileName),
