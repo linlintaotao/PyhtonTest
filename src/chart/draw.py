@@ -139,9 +139,14 @@ class FmiChart:
             return
 
         for dataFram in dataFrameList:
+            # if dataFram.get_altitude(onlyFix=True) is None ||
             nameList.append(dataFram.get_name())
             if singlePoint:
-                self.drawSingleCdf(dataFram, dataFram.get_name(), pointTruth=None, onlyFix=onlyFix)
+                try:
+                    self.drawSingleCdf(dataFram, dataFram.get_name(), pointTruth=None, onlyFix=onlyFix)
+                except Exception as e:
+                    print(e)
+                    continue
             else:
                 # todo 跟另一个数据对比
                 pass

@@ -11,9 +11,12 @@ manager = None
 
 
 def startAnalysis():
-    analysis = AnalysisTool(dir=os.path.join(os.path.abspath('.'), "data"))
-    analysis.read_file()
-    analysis.analysis()
+    try:
+        analysis = AnalysisTool(dir=os.path.join(os.path.abspath('.'), "data"))
+        analysis.read_file()
+        analysis.analysis()
+    except Exception as e:
+        print(e)
     buildReport()
     print('Test is Finished success')
 

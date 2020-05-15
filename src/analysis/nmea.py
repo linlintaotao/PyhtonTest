@@ -13,6 +13,9 @@ class GNGGAFrame:
         self._gga = None
         self.latitude = None
         self.parseData(data)
+        self.fixAltitude = None
+        self.fixState = None
+        self.fixLongitude = None
 
     def get_name(self):
         return self._name
