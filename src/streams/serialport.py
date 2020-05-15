@@ -47,12 +47,11 @@ class SerialPort:
 
     def open_serial(self):
         try:
-            print("open",self._port)
+
             self._entity = serial.Serial(self._port, self._baudRate, timeout=3)
-            print("open",self._port)
-            if self._entity.isOpen():
-                self._entity.close()
-            self._entity.open()
+            # if self._entity.isOpen():
+            #     self._entity.close()
+            # self._entity.open()
         except:
             raise IOError(f'can not open serial{self._port}:{self._baudRate}')
 
@@ -72,11 +71,10 @@ class SerialPort:
 
     def read_data(self):
         try:
-            print("read data = s")
-
             data = self._entity.readline()
         except Exception as e:
             print(e)
+            self.isRunning = False
             return
         if self.checkedSupportFmi:
             if b"\r\n" in data:
@@ -109,7 +107,6 @@ class SerialPort:
     def start(self):
         if self._entity is None:
             self.open_serial()
-        print("start")
         if self._read_thread is None:
             self._read_thread = None
         self._read_thread = Thread(target=self.read_thread)
@@ -117,8 +114,6 @@ class SerialPort:
 
     def autoTest(self, data):
         strData = str(data)
-
-        print("+++++", self.fixCount)
 
         if '+++ license activated' in strData:
             self.connectTimes = 0

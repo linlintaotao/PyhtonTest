@@ -42,7 +42,7 @@ class Manager:
         for serialName in serial_name_list:
             # print(serialName)
             # if powerTest:
-            #     if serialName != "/dev/cu.usbserial":
+            #     if serialName != "COM6":
             #         continue
             # print(2,serialName)
 
@@ -123,7 +123,7 @@ def stop():
 
 
 if __name__ == '__main__':
-    mSerial = serial.Serial('/dev/cu.usbserial-1420', 9600)
+    mSerial = serial.Serial('COM16', 9600)
     manager = Manager()
     timeStr = time.strftime('%Y%m%d_%H%M%S', time.localtime(time.time()))
 
