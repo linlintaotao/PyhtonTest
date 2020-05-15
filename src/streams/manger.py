@@ -1,5 +1,7 @@
 # coding= utf-8
 import os
+import threading
+
 import serial
 import serial.tools.list_ports as SerialManager
 import time
@@ -18,19 +20,29 @@ def find_serial():
     for i in portList:
         serialPath = list(i)[0]
         print(serialPath)
-        if 'Bluetooth' not in serialPath:
+        if ('Bluetooth' not in serialPath) & ("COM41" not in serialPath):
             serialNameList.append(serialPath)
     return serialNameList
 
 
 class Manager:
+    _instance_lock = threading.Lock()
 
     def __init__(self, dir=os.path.abspath('../..') + "/data/"):
         self.dir = dir
         self.ntrip = NtripClient(mountPoint='Obs')
         self.serial_list = list()
         self.portList = list()
-        self.timeStr = ""
+        self.timeStr = time.strftime('%Y%m%d_%H%M%S', time.localtime(time.time()))
+
+    @classmethod
+    def instance(cls, *arg, **kwargs):
+        if not hasattr(Manager, "_instance"):
+            with Manager._instance_lock:
+                if not hasattr(Manager, "_instance"):
+                    Manager._instance = Manager(*arg, **kwargs)
+
+        return Manager._instance
 
     def start(self, powerTest=False):
         serial_name_list = find_serial()
@@ -81,14 +93,14 @@ class Manager:
 
 def checkSerialIsSupport(port):
     print(port)
-    for serial_entity in manager.serialList():
+    for serial_entity in Manager.instance().serialList():
         print(port, serial_entity.getPort())
         if port == serial_entity.getPort():
             file = FileWriter(
-                serial_entity.getPort().split('/')[-1] + '_' + timeStr + ".log",
-                manager.getDir())
-            serial_entity.setFile(file, timeStr)
-            manager.ntrip.register(serial_entity)
+                serial_entity.getPort().split('/')[-1] + '_' + Manager.instance().timeStr + ".log",
+                Manager.instance().getDir())
+            serial_entity.setFile(file, Manager.instance().timeStr)
+            Manager.instance().ntrip.register(serial_entity)
 
 
 def close_unSupport():
@@ -129,9 +141,9 @@ if __name__ == '__main__':
 
     # try:
     manager.start(powerTest=True)
-        # manager.sendOrder("AT+READ_PARA\r\n")
-        # thread = Thread(close_unSupport())
-        # thread.start()
+    # manager.sendOrder("AT+READ_PARA\r\n")
+    # thread = Thread(close_unSupport())
+    # thread.start()
     # except Exception as e:
     #     manager.stop()
     #     stop()

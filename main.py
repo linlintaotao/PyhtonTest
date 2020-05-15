@@ -31,7 +31,7 @@ def stop():
 
 
 if __name__ == '__main__':
-    manager = Manager()
+    manager = Manager.instance(dir=os.path.join(os.path.abspath('.'), "data"))
     manager.start()
     scheduler = Timer(60 * 5, stop)
     scheduler.start()

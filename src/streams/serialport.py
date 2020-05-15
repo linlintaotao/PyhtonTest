@@ -47,7 +47,6 @@ class SerialPort:
 
     def open_serial(self):
         try:
-
             self._entity = serial.Serial(self._port, self._baudRate, timeout=3)
             # if self._entity.isOpen():
             #     self._entity.close()

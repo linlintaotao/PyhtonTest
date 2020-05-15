@@ -40,6 +40,7 @@ class AnalysisTool:
             self._ggaEntity.clear()
             if ".log" not in fileName:
                 continue
+            portName = fileName
             dirPath = os.path.join(self._dir, fileName.split('.log')[0])
             if os.path.exists(dirPath) is False:
                 os.mkdir(dirPath)
@@ -78,7 +79,7 @@ class AnalysisTool:
             self.drawPic(dirPath)
             maxNum = len(gga.get_altitude())
             fixNum = len(gga.get_altitude(True))
-            records.append((fileName.split('_')[0], swVersion, str(maxNum), str(round(fixNum * 100 / maxNum, 2))))
+            records.append((portName.split('_')[0], swVersion, str(maxNum), str(round(fixNum * 100 / maxNum, 2))))
 
         """ 生成word文档"""
         report = WordReporter(self._dir,
