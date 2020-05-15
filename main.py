@@ -25,6 +25,11 @@ def buildReport():
     make_zip(report_dir, os.path.join(os.path.abspath('.'), "dailyReport.zip"))
 
 
+def close_useless_port():
+    if manager is not None:
+        manager.close_unSupport()
+
+
 def stop():
     if manager is not None:
         manager.stop()
@@ -33,6 +38,9 @@ def stop():
 if __name__ == '__main__':
     manager = Manager.instance(dir=os.path.join(os.path.abspath('.'), "data"))
     manager.start()
+    stop_useless_port = Timer(30, close_useless_port)
+    stop_useless_port.start()
+
     scheduler = Timer(60 * 5, stop)
     scheduler.start()
     scheduler.join()

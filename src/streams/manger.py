@@ -20,7 +20,7 @@ def find_serial():
     for i in portList:
         serialPath = list(i)[0]
         print(serialPath)
-        if ('Bluetooth' not in serialPath) & ("COM41" not in serialPath):
+        if 'Bluetooth' not in serialPath:
             serialNameList.append(serialPath)
     return serialNameList
 
@@ -90,6 +90,16 @@ class Manager:
     def getDir(self):
         return self.dir
 
+    def close_unSupport(self):
+        time.sleep(30)
+        for serial_entity in self.serial_list:
+            if not serial_entity.getSupportFmi():
+                continue
+            print(serial_entity.getPort(), "stop")
+
+            if serial_entity.is_running():
+                serial_entity.close_serial()
+
 
 def checkSerialIsSupport(port):
     # print(port)
@@ -102,17 +112,6 @@ def checkSerialIsSupport(port):
             serial_entity.setFile(file, Manager.instance().timeStr)
             serial_entity.send_data("AT+READ_PARA\r\n")
             Manager.instance().ntrip.register(serial_entity)
-
-
-def close_unSupport():
-    time.sleep(30)
-    for serial_entity in manager.serialList():
-        if not serial_entity.getSupportFmi():
-            continue
-        print(serial_entity.getPort(), "stop")
-
-        if serial_entity.is_running():
-            serial_entity.close_serial()
 
 
 def switch():
@@ -139,12 +138,4 @@ if __name__ == '__main__':
     mSerial = serial.Serial('COM16', 9600)
     manager = Manager()
     timeStr = time.strftime('%Y%m%d_%H%M%S', time.localtime(time.time()))
-
-    # try:
     manager.start(powerTest=True)
-    # manager.sendOrder("AT+READ_PARA\r\n")
-    # thread = Thread(close_unSupport())
-    # thread.start()
-    # except Exception as e:
-    #     manager.stop()
-    #     stop()
