@@ -58,7 +58,7 @@ class Manager:
             except Exception as e:
                 print(e)
                 continue
-            manager.serial_list.append(serialEntity)
+            self.serial_list.append(serialEntity)
         self.ntrip.start()
 
     def sendOrder(self, order):
