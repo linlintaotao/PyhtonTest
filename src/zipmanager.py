@@ -3,7 +3,7 @@ import zipfile
 
 
 # 压缩zip
-def make_zip(source_dir, output_filename, type='.docx'):
+def make_zip(source_dir, output_filename, type='.log'):
     zipf = zipfile.ZipFile(os.path.join(source_dir, output_filename), 'w')
     pre_len = len(os.path.dirname(source_dir))
     for parent, dirnames, filenames in os.walk(source_dir):
