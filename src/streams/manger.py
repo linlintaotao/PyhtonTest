@@ -95,7 +95,7 @@ class Manager:
         for serial_entity in self.serial_list:
             if not serial_entity.getSupportFmi():
                 continue
-            print(serial_entity.getPort(), "stop")
+            # print(serial_entity.getPort(), "stop")
 
             if serial_entity.is_running():
                 serial_entity.close_serial()
@@ -104,7 +104,7 @@ class Manager:
 def checkSerialIsSupport(port):
     # print(port)
     for serial_entity in Manager.instance().serialList():
-        print(port, serial_entity.getPort())
+        # print(port, serial_entity.getPort())
         if port == serial_entity.getPort():
             file = FileWriter(
                 serial_entity.getPort().split('/')[-1] + '_' + Manager.instance().timeStr + ".log",
