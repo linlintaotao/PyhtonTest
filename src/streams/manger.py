@@ -100,6 +100,7 @@ def checkSerialIsSupport(port):
                 serial_entity.getPort().split('/')[-1] + '_' + Manager.instance().timeStr + ".log",
                 Manager.instance().getDir())
             serial_entity.setFile(file, Manager.instance().timeStr)
+            serial_entity.send_data("AT+READ_PARA\r\n")
             Manager.instance().ntrip.register(serial_entity)
 
 
