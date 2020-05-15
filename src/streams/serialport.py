@@ -84,7 +84,7 @@ class SerialPort:
         if len(data) <= 0:
             return None
         if self._showLog is True:
-            print(data)
+            print(str(data))
             if self.callback is not None:
                 self.autoTest(data)
         if self._file:

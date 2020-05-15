@@ -11,7 +11,7 @@ manager = None
 
 
 def startAnalysis():
-    analysis = AnalysisTool(dir=os.path.abspath('.') + "/data")
+    analysis = AnalysisTool(dir=os.path.join(os.path.abspath('.'), "data"))
     analysis.read_file()
     analysis.analysis()
     buildReport()
@@ -33,7 +33,7 @@ def stop():
 if __name__ == '__main__':
     manager = Manager()
     manager.start()
-    scheduler = Timer(60 * 10, stop)
+    scheduler = Timer(60 * 5, stop)
     scheduler.start()
     scheduler.join()
     startAnalysis()
