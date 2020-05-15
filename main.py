@@ -41,7 +41,7 @@ if __name__ == '__main__':
     stop_useless_port = Timer(30, close_useless_port)
     stop_useless_port.start()
 
-    scheduler = Timer(60 * 5, stop)
+    scheduler = Timer(60 * 60 * 12, stop)
     scheduler.start()
     scheduler.join()
     startAnalysis()
