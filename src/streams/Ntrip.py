@@ -122,10 +122,10 @@ class NtripClient(Publisher):
             print("start exp", e)
 
     def stop(self):
-
         self._isRunning = False
         self._stopByUser = True
-        self._socket.close()
+        if self._socket is not None:
+            self._socket.close()
 
     def receive_data(self):
 

@@ -2,17 +2,16 @@
 # 测试入口
 import os
 from src.streams.manger import Manager
-from src.report.word import WordReporter
 from src.analysis.Analysis import AnalysisTool
 from threading import Timer
 
+from src.zipmanager import make_zip
+
 manager = None
 
-def startAnalysis():
-    if manager is not None:
-        manager.stop()
 
-    analysis = AnalysisTool()
+def startAnalysis():
+    analysis = AnalysisTool(dir=os.path.abspath('.') + "/data")
     analysis.read_file()
     analysis.analysis()
     buildReport()
@@ -20,12 +19,21 @@ def startAnalysis():
 
 
 def buildReport():
-    # word = WordReporter()
-    # word.start()
-    pass
+    # 获取路径
+    report_dir = os.path.abspath('.') + "/data/"
+    # 调用打包方法
+    make_zip(report_dir, os.path.join(os.path.abspath('.'), "dailyReport.zip"))
+
+
+def stop():
+    if manager is not None:
+        manager.stop()
 
 
 if __name__ == '__main__':
     manager = Manager()
     manager.start()
-    Timer(3600 * 12, startAnalysis).start()
+    scheduler = Timer(60 * 10, stop)
+    scheduler.start()
+    scheduler.join()
+    startAnalysis()

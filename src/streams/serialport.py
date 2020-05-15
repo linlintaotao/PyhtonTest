@@ -58,7 +58,8 @@ class SerialPort:
 
     def close_serial(self):
         self.isRunning = False
-        self._entity.close()
+        if self._entity is not None:
+            self._entity.close()
         if self._file:
             self._file.close()
 

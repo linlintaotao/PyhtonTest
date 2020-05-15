@@ -3,10 +3,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as pacthes
-from matplotlib.collections import LineCollection
-from matplotlib.colors import ListedColormap, BoundaryNorm
-from datetime import timedelta, datetime
+from datetime import datetime
 from src.analysis import Gauss
+import math
 
 accuracyItems = [0.01, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 100, 1000]
 WATERMARK = "By FMI Tech"
@@ -65,7 +64,7 @@ class FmiChart:
         fig, ax = plt.subplots(figsize=[10, 8])
 
         ''' 根据解状态匹配对应的颜色 '''
-        text = ''
+        textInfo = ''
         if fixList is None:
             color = 'green'
             # accuracyItem = 0.02
@@ -73,18 +72,20 @@ class FmiChart:
             for i in range(len(xPos)):
                 a = abs(xPos[i] - xCenter)
                 b = abs(yPos[i] - yCenter)
-                if (a < 0.02) & (b < 0.02):
+
+                error = math.sqrt(a ** 2 + b ** 2)
+                if error < 0.02:
                     errorIn1cm += 1
-                elif (a < 0.05) & (b < 0.05):
+                elif error < 0.05:
                     errorIn2cm += 1
-            text = format("Scatter Fixed info: error< 0.02  %d%% ; 0.02<error<0.05  %d%%" % (
-                int(errorIn1cm * 100 / len(xPos)),
-                int(errorIn2cm * 100 / len(xPos))))
-            print(text)
+            textInfo = format("Fixed Info: error<0.02m  %d%% ; 0.02<error<0.05m  %d%%" % (
+                round(errorIn1cm * 100 / len(xPos), 2),
+                round(errorIn2cm * 100 / len(xPos), 2)))
+            print(textInfo)
 
         else:
             color = list(map(lambda c: self._fixColor[c.astype(int)], fixList))
-            text = 'Scatter All'
+            textInfo = 'Scatter All'
 
         accuracyItem = self.get_accuracy(axis)
 
@@ -95,25 +96,22 @@ class FmiChart:
             if i != 0:
                 ax.annotate(str(mid), xy=(accuracyItem * (i - 1), 0), xytext=(mid, 0), ha='right', color='blue')
             ax.add_patch(circle)
-        fig.text(0.85, 0.5, WATERMARK, fontsize=40, color='gray', ha='right', va='center', alpha=0.2, rotation=30)
+        fig.text(0.75, 0.25, WATERMARK, fontsize=35, color='gray', ha='right', va='bottom', alpha=0.2, rotation=30)
+
         '''画点'''
         ax.scatter(list(map(lambda x: x - xCenter, xPos)), list(map(lambda y: y - yCenter, yPos)), marker='1', c=color)
 
-        print(axis)
         ax.set_xlim(-axis, axis)
         ax.set_ylim(-axis, axis)
         plt.xlabel(r'points x (m)')
         plt.ylabel(r'points y (m)')
-        # plt.title('%s Scatter View' % name)
-        plt.title(text)
-        # plt.legend()
+        plt.title(textInfo)
         plt.axis('equal')
         plt.grid(True, ls=':', c='lightgray')
         plt.savefig(self._savePath + '/' + name + '.png')
-        # plt.show()
 
     def drawLineChart(self, dataframe):
-        fig = plt.subplots(figsize=[16, 8])
+        fig, ax = plt.subplots(figsize=[12, 8])
         ax2 = plt.subplot(212)
         for data in dataframe:
             data.get_sateNum().plot(label=data.get_name())
@@ -123,13 +121,13 @@ class FmiChart:
         ax1 = plt.subplot(211, sharex=ax2)
         for data in dataframe:
             data.get_state().plot(label=data.get_name(), fontsize=9)
+        fig.text(0.75, 0.25, WATERMARK, fontsize=35, color='gray', ha='right', va='bottom', alpha=0.2, rotation=30)
+
         plt.title(r'FixState and sateNums')
         ax1.set_ylabel('FixState', fontsize=10)
         ax1.set_ylim(0, 7)
-        # plt.legend(loc='low')
         plt.grid(True, ls=':', c='lightgray')
         plt.savefig(self._savePath + '/bsateNumAndFixSate.png')
-        # plt.show()
 
     # pointTruth [latitude,longitude,altitude]
     # dataTruth
@@ -143,12 +141,12 @@ class FmiChart:
         for dataFram in dataFrameList:
             nameList.append(dataFram.get_name())
             if singlePoint:
-                self.drawSingleCdf(dataFram, nameList, pointTruth=None, onlyFix=onlyFix)
+                self.drawSingleCdf(dataFram, dataFram.get_name(), pointTruth=None, onlyFix=onlyFix)
             else:
                 # todo 跟另一个数据对比
                 pass
 
-    def drawSingleCdf(self, dataFram, nameList, pointTruth=None, onlyFix=False):
+    def drawSingleCdf(self, dataFram, name, pointTruth=None, onlyFix=False):
         n_diffList, e_diffList, u_diffList, fixList, hz_diffList = [], [], [], [], []
         if pointTruth is None:
             pointTruth = dataFram.getPointTruth()
@@ -159,25 +157,65 @@ class FmiChart:
                                                                np.cos(pointTruth[0]) * D2R)
         u_diff = dataFram.get_altitude(onlyFix=onlyFix).apply(lambda x: x - pointTruth[2])
 
-
         n_diffList.append(n_diff)
         e_diffList.append(e_diff)
         u_diffList.append(u_diff)
         hz_diffList.append(np.sqrt(n_diff[:] ** 2 + e_diff[:] ** 2))
         fixList.append(dataFram.get_state(onlyFix=onlyFix).values)
-        self.drawNEU(n_diffList, nameList, TITLES[0], fixList, name='north', onlyFix=onlyFix)
-        self.drawNEU(e_diffList, nameList, TITLES[1], fixList, name='east', onlyFix=onlyFix)
-        self.drawNEU(u_diffList, nameList, TITLES[2], fixList, name='up', onlyFix=onlyFix)
-        self.drawHorizontal(hz_diffList, nameList, TITLES[3])
+        # self.drawNEU(n_diffList, fixList, onlyFix=onlyFix)
+        # self.drawNEU(e_diffList, fixList, onlyFix=onlyFix)
+        # self.drawNEU(u_diffList, fixList, onlyFix=onlyFix)
 
-    def drawNEU(self, lineData, nameList, title, fixList, name='', onlyFix=False):
+        self.drawNEU(n_diffList, e_diffList, u_diffList, fixList, name, onlyFix=onlyFix)
 
-        fig, anx = plt.subplots(figsize=(16, 8))
+        self.drawHorizontal(hz_diffList, name, TITLES[3])
+
+    # def drawNEU(self, lineData, title, fixList, name='', onlyFix=False):
+    #
+    #     fig, anx = plt.subplots(figsize=(16, 8))
+    #     xMax, xMin = 0, 0
+    #     for i in range(len(lineData)):
+    #         data = lineData[i]
+    #         # if onlyFix & (len(data)) <= 0:
+    #         #     continue
+    #
+    #         # 获取每个点的解状态
+    #         colors = list(map(lambda c: self._fixColor[c.astype(int)], fixList[i]))
+    #         """ 获取采集的数据在x轴上的范围 来为不同状态的点加上特定的颜色"""
+    #         indexList = list(map(lambda a: a.timestamp(), data.index))
+    #         timeMax = max(indexList)
+    #         timeMin = min(indexList)
+    #
+    #         if xMin == 0:
+    #             xMin = timeMax
+    #         xMax = timeMax if timeMax > xMax else xMax
+    #         xMin = timeMin if timeMin < xMin else xMin
+    #
+    #         ''' 画点 （x= 时间,y= NEU上的误差，c = color）'''
+    #         anx.scatter(data.index, data.values, c=colors)
+    #
+    #     plt.axhline(y=0.2, color='b', linestyle='-.', lw=0.6, label='0.2 m line')
+    #     plt.axhline(y=-0.2, color='b', linestyle='-.', lw=.6)
+    #     fig.text(0.75, 0.25, WATERMARK, fontsize=25, color='gray', ha='right', va='bottom', alpha=0.4)
+    #
+    #     anx.set_title(title)
+    #     anx.set_ylabel('Differential error / m')
+    #     anx.set_xlabel('local time(dd-hh-mm)')
+    #     anx.set_xlim(datetime.utcfromtimestamp(xMin), datetime.utcfromtimestamp(xMax))
+    #
+    #     anx.legend(fontsize='small', ncol=1)
+    #     anx.grid(True, ls=':', c='lightgray')
+    #     plt.savefig(self._savePath + '/' + name + ('_FIX' if onlyFix else '_All') + '.png')
+
+    def drawNEU(self, n_diff, e_diff, u_diff, fixList, name, onlyFix=False):
+
+        fig, ax = plt.subplots(figsize=(16, 10))
+        anx_u = plt.subplot(313)
+
         xMax, xMin = 0, 0
-        for i in range(len(lineData)):
-            data = lineData[i]
-            # if onlyFix & (len(data)) <= 0:
-            #     continue
+
+        for i in range(len(u_diff)):
+            data = u_diff[i]
 
             # 获取每个点的解状态
             colors = list(map(lambda c: self._fixColor[c.astype(int)], fixList[i]))
@@ -186,30 +224,48 @@ class FmiChart:
             timeMax = max(indexList)
             timeMin = min(indexList)
 
-            if xMin == 0:
-                xMin = timeMax
             xMax = timeMax if timeMax > xMax else xMax
-            xMin = timeMin if timeMin < xMin else xMin
+            xMin = timeMin if (timeMin < xMin) | (xMin == 0) else xMin
 
             ''' 画点 （x= 时间,y= NEU上的误差，c = color）'''
-            anx.scatter(data.index, data.values, c=colors)
+            anx_u.scatter(data.index, data.values, c=colors, marker='.')
 
-        plt.axhline(y=0.2, color='b', linestyle='-.', lw=0.6, label='0.2 m line')
-        plt.axhline(y=-0.2, color='b', linestyle='-.', lw=.6)
-        fig.text(0.75, 0.25, WATERMARK, fontsize=25, color='gray', ha='right', va='bottom', alpha=0.4)
+        anx_e = plt.subplot(312, sharex=anx_u)
+        anx_n = plt.subplot(311, sharex=anx_u)
+        for i in range(len(n_diff)):
+            data = n_diff[i]
+            # 获取每个点的解状态
+            colors = list(map(lambda c: self._fixColor[c.astype(int)], fixList[i]))
+            ''' 画点 （x= 时间,y= NEU上的误差，c = color）'''
+            anx_n.scatter(data.index, data.values, c=colors, marker='.')
+            # data.plot(label=FILE_NAME_PREFIX[num + 1] + ' ' + dir, lw=0.3)
 
-        anx.set_title(title)
-        anx.set_ylabel('Differential error / m')
-        anx.set_xlabel('local time(dd-hh-mm)')
-        anx.set_xlim(datetime.utcfromtimestamp(xMin), datetime.utcfromtimestamp(xMax))
+        for i in range(len(e_diff)):
+            data = e_diff[i]
+            # 获取每个点的解状态
+            colors = list(map(lambda c: self._fixColor[c.astype(int)], fixList[i]))
+            ''' 画点 （x= 时间,y= NEU上的误差，c = color）'''
+            anx_e.scatter(data.index, data.values, c=colors, marker='.')
 
-        anx.legend(fontsize='small', ncol=1)
-        anx.grid(True, ls=':', c='lightgray')
-        plt.savefig(self._savePath + '/' + name + ('_FIX' if onlyFix else '_All') + '.png')
-        # plt.show()
+        # plt.axhline(y=0.2, color='b', linestyle='-.', lw=0.6, label='0.2 m line')
+        # plt.axhline(y=-0.2, color='b', linestyle='-.', lw=.6)
+        fig.text(0.75, 0.25, WATERMARK, fontsize=35, color='gray', ha='right', va='bottom', alpha=0.2, rotation=30)
+
+        plt.title('Error line in NEU -' + ("ALL" if onlyFix else "FIXED"))
+        # anx.set_title(title)
+        anx_n.set_ylabel(' N error / m')
+        anx_e.set_ylabel(' E error / m')
+        anx_u.set_ylabel(' U error / m')
+
+        anx_u.set_xlim(datetime.utcfromtimestamp(xMin), datetime.utcfromtimestamp(xMax))
+        anx_u.set_xlabel('local time(dd-hh-mm)')
+
+        # anx.legend(fontsize='small', ncol=1)
+        # anx.grid(True, ls=':', c='lightgray')
+        plt.savefig(self._savePath + '/NEU' + ('_FIX' if onlyFix else '_All') + '.png')
 
     def drawHorizontal(self, hzData, nameList, title):
-        fig, axh = plt.subplots(figsize=(16, 8))
+        fig, axh = plt.subplots(figsize=(12, 8))
         axh.set_title(title)
 
         for i in range(len(hzData)):
@@ -217,7 +273,7 @@ class FmiChart:
                            label=nameList[i])
         plt.axhline(y=.95, color='b', linestyle='-.', lw=0.6, label='95% line')
         plt.axhline(y=.68, color='b', linestyle='-.', lw=0.6, label='68% line')
-        fig.text(0.75, 0.25, WATERMARK, fontsize=25, color='gray', ha='right', va='center', alpha=0.4)
+        fig.text(0.75, 0.25, WATERMARK, fontsize=35, color='gray', ha='right', va='center', alpha=0.2, rotation=30)
         axh.set_xlabel('Horizontal error (m)')
         axh.set_ylabel('Likelihood of occurrence')
 
@@ -227,10 +283,10 @@ class FmiChart:
         # plt.show()
 
     def drawSateCn0(self, name, sateCn0):
-        fig, ax = plt.subplots(figsize=(16, 8))
+        fig, ax = plt.subplots(figsize=(12, 8))
         plt.title('Satellite cn0 mean')
         plt.tick_params(labelsize=6)
-        fig.text(0.85, 0.5, WATERMARK, fontsize=40, color='gray', ha='right', va='center', alpha=0.2, rotation=30)
+        fig.text(0.85, 0.5, WATERMARK, fontsize=35, color='gray', ha='right', va='center', alpha=0.2, rotation=30)
         plt.bar(list(map(lambda x: x.get_name(), sateCn0)), list(map(lambda x: x.get_mean_cn0(), sateCn0)))
         ax.set_ylabel('CN0 (db)')
         ax.grid(True, ls=':', c='lightgray')

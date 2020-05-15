@@ -85,7 +85,7 @@ def checkSerialIsSupport(port):
         print(port, serial_entity.getPort())
         if port == serial_entity.getPort():
             file = FileWriter(
-                serial_entity.getPort().split('/')[-1] + '-' + timeStr + ".log",
+                serial_entity.getPort().split('/')[-1] + '_' + timeStr + ".log",
                 manager.getDir())
             serial_entity.setFile(file, timeStr)
             manager.ntrip.register(serial_entity)

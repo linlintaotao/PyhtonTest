@@ -1,16 +1,18 @@
 # coding= utf-8
 
 import os
-from datetime import datetime, timedelta
+from datetime import datetime
+import time
 import pandas as pd
 from pip._vendor import chardet
 from src.analysis.nmea import GNGGAFrame, GSV
 from src.chart.draw import FmiChart
+from src.report.word import WordReporter
 
 
 class AnalysisTool:
 
-    def __init__(self, dir=os.path.abspath('..') + "/data"):
+    def __init__(self, dir=os.path.abspath('../..') + "/data"):
         self._dir = dir
         self.localTime = datetime.now().date()
         self.timeCheck = False
@@ -20,9 +22,9 @@ class AnalysisTool:
         self._GSVEntity = list()
 
     # 获取当前文件夹下的所有log文件
-    def read_file(self, tag='log'):
+    def read_file(self):
         for file in os.listdir(self._dir):
-            if file.endswith(tag):
+            if file.endswith('log'):
                 self._dataFiles.append(file)
                 self.fileList.append(file)
 
@@ -33,14 +35,18 @@ class AnalysisTool:
             return chardet.detect(f.read())['encoding']
 
     def analysis(self):
+        records = []
         for fileName in self.fileList:
+            self._ggaEntity.clear()
+            if ".log" not in fileName:
+                continue
             dirPath = os.path.join(self._dir, fileName.split('.log')[0])
             if os.path.exists(dirPath) is False:
                 os.mkdir(dirPath)
             """
-                记录设备信息 boot版本 固件版本 和开始时间
+                记录设备信息 固件版本 和开始时间
             """
-            configText = self.readConfig(fileName)
+            startTime, swVersion = self.readConfig(fileName)
 
             """
                 we put 20 names because it's Feyman-0183 Data, each line has different num with step ','
@@ -57,33 +63,52 @@ class AnalysisTool:
                                )
             # 删除异常数据
             df = df.drop(index=df.loc[(df['1'].isna())].index)
+
             # self._GSV = df.loc[df['0'].str.contains('GSV')].copy()
             # gsv = GSV(dirPath, df.loc[df['0'].str.contains('GSV')].copy())
+            # self._GSVEntity.append(gsv)
+
+            df = df.drop(index=df.loc[(df['6'].isna())].index)
+            df = df.drop(index=df.loc[(df['6'].astype(str) == '0')].index)
+
             gga = GNGGAFrame(dirPath,
                              df.loc[(df['0'].astype(str) == '$GNGGA') | (df['0'].astype(str) == '$GPGGA')].copy(),
                              self.localTime)
             self._ggaEntity.append(gga)
-            # self._GSVEntity.append(gsv)
-        self.drawPic("dirPath")
+            self.drawPic(dirPath)
+            maxNum = len(gga.get_altitude())
+            fixNum = len(gga.get_altitude(True))
+            records.append((fileName.split('_')[0], swVersion, str(maxNum), str(round(fixNum * 100 / maxNum, 2))))
+
         """ 生成word文档"""
+        report = WordReporter(self._dir,
+                              time.strftime('%Y%m%d_%H%M%S', time.localtime(time.time())))
+        report.setRecords(records)
+        report.build()
 
     def analysisGSV(self):
 
         pass
 
     def readConfig(self, fileName):
-        writeLog = ''
+        startTime = ''
+        swVersion = ''
         path = self._dir + '/' + fileName
         readLimit = 0
         with open(file=path) as rf:
             for line in rf.readlines():
                 readLimit += 1
-                if ("StartTime" in line) | ('' in line) | ('' in line) | ('' in line) | ('' in line):
-                    writeLog += line
-                if readLimit > 30:
+                if "StartTime" in line:
+                    startTime = line.split('=')[-1]
+                elif '$VERSION:' in line:
+                    swVersion = line.split(':')[-1]
+                    pass
+                elif '' in line:
+                    pass
+                if len(startTime) > 0 | len(swVersion) > 0 | readLimit > 60:
                     break
         rf.close()
-        return writeLog
+        return startTime, swVersion
 
     def drawPic(self, dirPath):
 
@@ -96,8 +121,6 @@ class AnalysisTool:
             xList, yList, xFixList, yFixList, fixList = data.get_scatter()
             fmiChar.drawScatter('ScatterFix', xFixList, yFixList)
             fmiChar.drawScatter('ScatterAll', xList, yList, fixList)
-            print(len(xFixList))
-            print(len(xList))
         # ''' draw only Fix'''
         fmiChar.drawCdf(self._ggaEntity, singlePoint=True, onlyFix=True)
 
