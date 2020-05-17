@@ -39,12 +39,12 @@ def stop():
 
 
 if __name__ == '__main__':
-    # manager = Manager.instance(dir=os.path.join(os.path.abspath('.'), "data"))
-    # manager.start()
-    # stop_useless_port = Timer(30, close_useless_port)
-    # stop_useless_port.start()
-    #
-    # scheduler = Timer(60 * 60 * 20, stop)
-    # scheduler.start()
-    # scheduler.join()
+    manager = Manager.instance(dir=os.path.join(os.path.abspath('.'), "data"))
+    manager.start()
+    stop_useless_port = Timer(30, close_useless_port)
+    stop_useless_port.start()
+
+    scheduler = Timer(60 * 60 * 20, stop)
+    scheduler.start()
+    scheduler.join()
     startAnalysis()
