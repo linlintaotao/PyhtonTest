@@ -12,10 +12,10 @@ class GNGGAFrame:
         self.hz = hz
         self._gga = None
         self.latitude = None
-        self.parseData(data)
         self.fixAltitude = None
         self.fixState = None
         self.fixLongitude = None
+        self.parseData(data)
 
     def get_name(self):
         return self._name
@@ -58,7 +58,6 @@ class GNGGAFrame:
         self.altitude = self._gga.loc[:, '9'].astype(float)
 
         fixGGA = self._gga.loc[self._gga['6'].astype(int) == 4, :]
-        # print(fixGGA)
         self.fixLatitude = fixGGA.loc[:, '2'].astype(float).apply(lambda x: self.dmTodd(x))
         self.fixLongitude = fixGGA.loc[:, '4'].astype(float).apply(lambda x: self.dmTodd(x))
         self.fixAltitude = fixGGA.loc[:, '9'].astype(float)

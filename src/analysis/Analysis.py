@@ -76,11 +76,13 @@ class AnalysisTool:
                              df.loc[(df['0'].astype(str) == '$GNGGA') | (df['0'].astype(str) == '$GPGGA')].copy(),
                              self.localTime)
             self._ggaEntity.append(gga)
-            self.drawPic(dirPath)
             maxNum = len(gga.get_altitude())
             fixNum = len(gga.get_altitude(True))
             records.append((portName.split('_')[0], swVersion, str(maxNum), str(round(fixNum * 100 / maxNum, 2))))
-
+            try:
+                self.drawPic(dirPath)
+            except Exception as e:
+                print(e)
         """ 生成word文档"""
         report = WordReporter(self._dir,
                               time.strftime('%Y%m%d_%H%M%S', time.localtime(time.time())))
@@ -120,7 +122,7 @@ class AnalysisTool:
         #     fmiChar.drawSateCn0(gsv.get_name(), gsv.get_satellites_status())
         for data in self._ggaEntity:
             xList, yList, xFixList, yFixList, fixList = data.get_scatter()
-            if len(xFixList)!=0:
+            if len(xFixList) != 0:
                 fmiChar.drawScatter('ScatterFix', xFixList, yFixList)
             fmiChar.drawScatter('ScatterAll', xList, yList, fixList)
         # ''' draw only Fix'''
