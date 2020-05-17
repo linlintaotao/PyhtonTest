@@ -103,7 +103,7 @@ class AnalysisTool:
                 readLimit += 1
                 if "StartTime" in line:
                     startTime = line.split('=')[-1]
-                elif '$VERSION:' in line:
+                elif 'VERSION:' in line:
                     swVersion = line.split(':')[-1]
                     pass
                 elif '' in line:
