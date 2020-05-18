@@ -93,7 +93,7 @@ class SerialPort:
 
     def notify(self, data):
         try:
-            if self._entity.is_open:
+            if self._entity.is_open & self.isRunning:
                 self._entity.write(data)
         except Exception as e:
             print(e)

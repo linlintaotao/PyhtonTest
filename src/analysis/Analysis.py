@@ -124,7 +124,6 @@ class AnalysisTool:
             xList, yList, xFixList, yFixList, fixList = data.get_scatter()
             if len(xFixList) != 0:
                 fmiChar.drawScatter('ScatterFix', xFixList, yFixList)
-
             fmiChar.drawScatter('ScatterAll', xList, yList, fixList)
         # ''' draw only Fix'''
         fmiChar.drawCdf(self._ggaEntity, singlePoint=True, onlyFix=True)
