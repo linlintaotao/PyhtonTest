@@ -1,6 +1,8 @@
 # coding= utf-8
 # 测试入口
 import os
+import time
+
 from src.streams.manger import Manager
 from src.analysis.Analysis import AnalysisTool
 from threading import Timer
@@ -11,6 +13,7 @@ manager = None
 
 
 def startAnalysis():
+    stop()
     try:
         analysis = AnalysisTool(dir=os.path.join(os.path.abspath('.'), "data"))
         analysis.read_file()
@@ -25,7 +28,7 @@ def buildReport():
     # 获取路径
     report_dir = os.path.abspath('.') + "/data/"
     # 调用打包方法
-    make_zip(report_dir, os.path.join(os.path.abspath('.'), "dailyReport.zip"))
+    make_zip(report_dir, os.path.join(os.path.abspath('.'), timeStr + "_dailyReport.zip"))
 
 
 def close_useless_port():
@@ -39,12 +42,16 @@ def stop():
 
 
 if __name__ == '__main__':
-    # manager = Manager.instance(dir=os.path.join(os.path.abspath('.'), "data"))
-    # manager.start()
-    # stop_useless_port = Timer(30, close_useless_port)
-    # stop_useless_port.start()
-    #
-    # scheduler = Timer(60 * 60 * 20, stop)
-    # scheduler.start()
-    # scheduler.join()
+    timeStr = time.strftime('%Y%m%d_%H%M%S', time.localtime(time.time()))
+    dirPath = os.path.join(os.path.abspath('.'), "data")
+    if os.path.exists(dirPath) is False:
+        os.mkdir(dirPath)
+    manager = Manager.instance(dir=dirPath)
+    manager.start()
+    stop_useless_port = Timer(30, close_useless_port)
+    stop_useless_port.start()
+
+    scheduler = Timer(60 * 60 * 20, stop)
+    scheduler.start()
+    scheduler.join()
     startAnalysis()
