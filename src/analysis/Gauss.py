@@ -119,7 +119,7 @@ def LatLon2XY(latitude, longitude):
 
 if __name__ == '__main__':
     print('start Gauss_BLHToXYH %s' % datetime.strftime(datetime.now(), '%H%M%S.%f'))
-    print(Gauss_BLHToXYH(40.07837722329, 116.23514827596, 54, 116.23514827596))
+    # print(Gauss_BLHToXYH(40.07837722329, 116.23514827596, 54, 116.23514827596))
     print('end Gauss_BLHToXYH %s' % datetime.strftime(datetime.now(), '%H%M%S.%f'))
     print(LatLon2XY(40.07837722329, 116.23514827596))
     print('end LatLon2XY %s' % datetime.strftime(datetime.now(), '%H%M%S.%f'))

@@ -71,7 +71,6 @@ class AnalysisTool:
 
             df = df.drop(index=df.loc[(df['6'].isna())].index)
             df = df.drop(index=df.loc[(df['6'].astype(str) == '0')].index)
-
             gga = GNGGAFrame(dirPath,
                              df.loc[(df['0'].astype(str) == '$GNGGA') | (df['0'].astype(str) == '$GPGGA')].copy(),
                              self.localTime)
@@ -118,12 +117,14 @@ class AnalysisTool:
         fmiChar = FmiChart(path=dirPath)
         fmiChar.drawLineChart(self._ggaEntity)
         fmiChar.drawCdf(self._ggaEntity, singlePoint=True)
+
         # for gsv in self._GSVEntity:
         #     fmiChar.drawSateCn0(gsv.get_name(), gsv.get_satellites_status())
         for data in self._ggaEntity:
             xList, yList, xFixList, yFixList, fixList = data.get_scatter()
             if len(xFixList) != 0:
                 fmiChar.drawScatter('ScatterFix', xFixList, yFixList)
+
             fmiChar.drawScatter('ScatterAll', xList, yList, fixList)
         # ''' draw only Fix'''
         fmiChar.drawCdf(self._ggaEntity, singlePoint=True, onlyFix=True)

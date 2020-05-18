@@ -44,8 +44,9 @@ class GNGGAFrame:
             check gngga data timestamp and update it's type to YYmmdd-hhmmss.f
         """
         if self.timeCheck is False:
+
             for time in data.loc[:, '1'].astype(float):
-                if time > 235959.9:
+                if time < 0.1:
                     print(" === %f" % time)
                     self._time -= timedelta(days=1)
 

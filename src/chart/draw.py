@@ -109,6 +109,7 @@ class FmiChart:
         plt.axis('equal')
         plt.grid(True, ls=':', c='lightgray')
         plt.savefig(self._savePath + '/' + name + '.png')
+        plt.close(fig)
 
     def drawLineChart(self, dataframe):
         fig, ax = plt.subplots(figsize=[12, 8])
@@ -128,6 +129,7 @@ class FmiChart:
         ax1.set_ylim(0, 7)
         plt.grid(True, ls=':', c='lightgray')
         plt.savefig(self._savePath + '/bsateNumAndFixSate.png')
+        plt.close(fig)
 
     # pointTruth [latitude,longitude,altitude]
     # dataTruth
@@ -256,7 +258,7 @@ class FmiChart:
         # plt.axhline(y=-0.2, color='b', linestyle='-.', lw=.6)
         fig.text(0.75, 0.25, WATERMARK, fontsize=35, color='gray', ha='right', va='bottom', alpha=0.2, rotation=30)
 
-        plt.title('Error line in NEU -' + ("ALL" if onlyFix else "FIXED"))
+        plt.title('Error line in NEU -' + ("FIXED" if onlyFix else "ALL"))
         # anx.set_title(title)
         anx_n.set_ylabel(' N error / m')
         anx_e.set_ylabel(' E error / m')
@@ -268,6 +270,7 @@ class FmiChart:
         # anx.legend(fontsize='small', ncol=1)
         # anx.grid(True, ls=':', c='lightgray')
         plt.savefig(self._savePath + '/NEU' + ('_FIX' if onlyFix else '_All') + '.png')
+        plt.close(fig)
 
     def drawHorizontal(self, hzData, nameList, title):
         fig, axh = plt.subplots(figsize=(12, 8))
@@ -285,7 +288,7 @@ class FmiChart:
         axh.legend(fontsize='small', ncol=1)
         axh.grid(True, ls=':', c='lightgray')
         fig.savefig(self._savePath + '/acdf.png')
-        # plt.show()
+        plt.close(fig)
 
     def drawSateCn0(self, name, sateCn0):
         fig, ax = plt.subplots(figsize=(12, 8))
@@ -296,4 +299,4 @@ class FmiChart:
         ax.set_ylabel('CN0 (db)')
         ax.grid(True, ls=':', c='lightgray')
         fig.savefig(self._savePath + '/Cn0.png')
-        # plt.show()
+        plt.close(fig)
