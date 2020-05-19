@@ -13,7 +13,6 @@ manager = None
 
 
 def startAnalysis():
-    stop()
     try:
         analysis = AnalysisTool(dir=os.path.join(os.path.abspath('.'), "data"))
         analysis.read_file()
