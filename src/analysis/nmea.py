@@ -97,7 +97,7 @@ class GNGGAFrame:
         for i in range(len(fixList)):
             if fixList[i] == 4:
                 return [self.get_latitude()[i], self.get_longitude()[i], self.get_altitude()[i]]
-        return [40, 60, 54]
+        return [40.06410906, 116.2281654, 54]
 
     def get_scatter(self):
         latitude = self.get_latitude()

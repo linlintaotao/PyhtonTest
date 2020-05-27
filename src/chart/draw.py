@@ -161,8 +161,11 @@ class FmiChart:
         n_diff = dataFram.get_latitude(onlyFix=onlyFix).apply(lambda x: (x - pointTruth[0]) * D2R * radius)
         e_diff = dataFram.get_longitude(onlyFix=onlyFix).apply(lambda x:
                                                                (x - pointTruth[1]) * D2R * radius *
-                                                               np.cos(pointTruth[0]) * D2R)
+                                                               np.cos(pointTruth[0] * D2R))
         u_diff = dataFram.get_altitude(onlyFix=onlyFix).apply(lambda x: x - pointTruth[2])
+
+        if onlyFix & (len(n_diff) <= 0 | len(e_diff) <= 0 | len(u_diff) <= 0):
+            return
 
         n_diffList.append(n_diff)
         e_diffList.append(e_diff)
