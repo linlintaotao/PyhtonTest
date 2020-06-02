@@ -117,6 +117,8 @@ class NtripClient(Publisher):
 
             self._socket.send(self.set_mount_info(self._mountPoint))
 
+            self._socket.send(self.getGGAString())
+
         except Exception as e:
             self._isRunning = False
             print("start exp", e)

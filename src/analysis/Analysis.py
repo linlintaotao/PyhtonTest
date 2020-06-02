@@ -50,8 +50,8 @@ class AnalysisTool:
             """
             startTime, swVersion, testTimes, fixedUseTimeList = self.readConfig(fileName, testPower)
 
-            self.localTime = datatime.now().data() if len(startTime) <= 0 \
-                else datetime.datetime.strptime(startTime, "%Y%m%d_%H:%M:%S")
+            self.localTime = datetime.now().date() if len(startTime) <= 0 \
+                else datetime.strptime(startTime, "%Y%m%d_%H%M%S")
 
             """
                 we put 20 names because it's Feyman-0183 Data, each line has different num with step ','
@@ -117,7 +117,7 @@ class AnalysisTool:
                 readLimit += 1
 
                 if len(startTime) <= 0 & ("StartTime" in line):
-                    startTime = line.split('=')[-1]
+                    startTime = line.split('=')[-1].replace('\n', '')
                     continue
 
                 if len(swVersion) <= 0:
@@ -165,7 +165,7 @@ class AnalysisTool:
 if __name__ == '__main__':
     analysisTool = AnalysisTool()
     analysisTool.read_file()
-    analysisTool.analysis(testPower=True)
+    analysisTool.analysis(testPower=False)
     # dirPath = os.path.abspath('../..') + "/data"
     # fileName = dirPath + "/nmea0508.log"
     # df = pd.read_table(fileName, sep=',',
