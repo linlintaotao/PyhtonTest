@@ -21,7 +21,6 @@ class AnalysisTool:
 
     def __init__(self, dir=os.path.abspath('../..') + "/data"):
         self._dir = dir
-        self.localTime = datetime.now().date()
         self.timeCheck = False
         self.fileList = list()
         self._dataFiles = list()
@@ -50,6 +49,9 @@ class AnalysisTool:
                 记录设备信息 固件版本 和开始时间
             """
             startTime, swVersion, testTimes, fixedUseTimeList = self.readConfig(fileName, testPower)
+
+            self.localTime = datatime.now().data() if len(startTime) <= 0 \
+                else datetime.datetime.strptime(startTime, "%Y%m%d_%H:%M:%S")
 
             """
                 we put 20 names because it's Feyman-0183 Data, each line has different num with step ','

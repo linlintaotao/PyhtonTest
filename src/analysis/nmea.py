@@ -8,7 +8,7 @@ class GNGGAFrame:
     def __init__(self, name, data, localTime, hz=1):
         self._name = name.split('-')[0]
         self._time = localTime
-        self.timeCheck = False
+        # self.timeCheck = False
         self.hz = hz
         self._gga = None
         self.latitude = None
@@ -43,12 +43,12 @@ class GNGGAFrame:
         """
             check gngga data timestamp and update it's type to YYmmdd-hhmmss.f
         """
-        if self.timeCheck is False:
+        # if self.timeCheck is False:
 
-            for time in data.loc[:, '1'].astype(float):
-                if time < 0.1:
-                    print(" === %f" % time)
-                    self._time -= timedelta(days=1)
+            # for time in data.loc[:, '1'].astype(float):
+            #     if time < 0.1:
+            #         print(" === %f" % time)
+            #         self._time -= timedelta(days=1)
 
         data.loc[:, '1'] = data.loc[:, '1'].astype(str).apply(lambda t: self.nmeatime(t))
         self._gga = data.set_index('1')
