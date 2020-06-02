@@ -141,14 +141,10 @@ class FmiChart:
             return
 
         for dataFram in dataFrameList:
-            # if dataFram.get_altitude(onlyFix=True) is None ||
             nameList.append(dataFram.get_name())
             if singlePoint:
-                try:
-                    self.drawSingleCdf(dataFram, dataFram.get_name(), pointTruth=None, onlyFix=onlyFix)
-                except Exception as e:
-                    print(e)
-                    continue
+                self.drawSingleCdf(dataFram, dataFram.get_name(), pointTruth=None, onlyFix=onlyFix)
+                continue
             else:
                 # todo 跟另一个数据对比
                 pass
@@ -167,55 +163,15 @@ class FmiChart:
         if onlyFix & (len(n_diff) <= 0 | len(e_diff) <= 0 | len(u_diff) <= 0):
             return
 
+        if onlyFix & (len(n_diff) <= 0 | len(e_diff) < 0 | len(u_diff) < 0):
+            return
         n_diffList.append(n_diff)
         e_diffList.append(e_diff)
         u_diffList.append(u_diff)
         hz_diffList.append(np.sqrt(n_diff[:] ** 2 + e_diff[:] ** 2))
         fixList.append(dataFram.get_state(onlyFix=onlyFix).values)
-        # self.drawNEU(n_diffList, fixList, onlyFix=onlyFix)
-        # self.drawNEU(e_diffList, fixList, onlyFix=onlyFix)
-        # self.drawNEU(u_diffList, fixList, onlyFix=onlyFix)
-
         self.drawNEU(n_diffList, e_diffList, u_diffList, fixList, name, onlyFix=onlyFix)
-
         self.drawHorizontal(hz_diffList, name, TITLES[3])
-
-    # def drawNEU(self, lineData, title, fixList, name='', onlyFix=False):
-    #
-    #     fig, anx = plt.subplots(figsize=(16, 8))
-    #     xMax, xMin = 0, 0
-    #     for i in range(len(lineData)):
-    #         data = lineData[i]
-    #         # if onlyFix & (len(data)) <= 0:
-    #         #     continue
-    #
-    #         # 获取每个点的解状态
-    #         colors = list(map(lambda c: self._fixColor[c.astype(int)], fixList[i]))
-    #         """ 获取采集的数据在x轴上的范围 来为不同状态的点加上特定的颜色"""
-    #         indexList = list(map(lambda a: a.timestamp(), data.index))
-    #         timeMax = max(indexList)
-    #         timeMin = min(indexList)
-    #
-    #         if xMin == 0:
-    #             xMin = timeMax
-    #         xMax = timeMax if timeMax > xMax else xMax
-    #         xMin = timeMin if timeMin < xMin else xMin
-    #
-    #         ''' 画点 （x= 时间,y= NEU上的误差，c = color）'''
-    #         anx.scatter(data.index, data.values, c=colors)
-    #
-    #     plt.axhline(y=0.2, color='b', linestyle='-.', lw=0.6, label='0.2 m line')
-    #     plt.axhline(y=-0.2, color='b', linestyle='-.', lw=.6)
-    #     fig.text(0.75, 0.25, WATERMARK, fontsize=25, color='gray', ha='right', va='bottom', alpha=0.4)
-    #
-    #     anx.set_title(title)
-    #     anx.set_ylabel('Differential error / m')
-    #     anx.set_xlabel('local time(dd-hh-mm)')
-    #     anx.set_xlim(datetime.utcfromtimestamp(xMin), datetime.utcfromtimestamp(xMax))
-    #
-    #     anx.legend(fontsize='small', ncol=1)
-    #     anx.grid(True, ls=':', c='lightgray')
-    #     plt.savefig(self._savePath + '/' + name + ('_FIX' if onlyFix else '_All') + '.png')
 
     def drawNEU(self, n_diff, e_diff, u_diff, fixList, name, onlyFix=False):
 
@@ -257,21 +213,15 @@ class FmiChart:
             ''' 画点 （x= 时间,y= NEU上的误差，c = color）'''
             anx_e.scatter(data.index, data.values, c=colors, marker='.')
 
-        # plt.axhline(y=0.2, color='b', linestyle='-.', lw=0.6, label='0.2 m line')
-        # plt.axhline(y=-0.2, color='b', linestyle='-.', lw=.6)
         fig.text(0.75, 0.25, WATERMARK, fontsize=35, color='gray', ha='right', va='bottom', alpha=0.2, rotation=30)
 
         plt.title('Error line in NEU -' + ("FIXED" if onlyFix else "ALL"))
-        # anx.set_title(title)
         anx_n.set_ylabel(' N error / m')
         anx_e.set_ylabel(' E error / m')
         anx_u.set_ylabel(' U error / m')
 
         anx_u.set_xlim(datetime.utcfromtimestamp(xMin), datetime.utcfromtimestamp(xMax))
         anx_u.set_xlabel('local time(dd-hh-mm)')
-
-        # anx.legend(fontsize='small', ncol=1)
-        # anx.grid(True, ls=':', c='lightgray')
         plt.savefig(self._savePath + '/NEU' + ('_FIX' if onlyFix else '_All') + '.png')
         plt.close(fig)
 
@@ -295,11 +245,35 @@ class FmiChart:
 
     def drawSateCn0(self, name, sateCn0):
         fig, ax = plt.subplots(figsize=(12, 8))
-        plt.title('Satellite cn0 mean')
+        plt.title(f'{name} Satellite cn0 mean')
         plt.tick_params(labelsize=6)
         fig.text(0.85, 0.5, WATERMARK, fontsize=35, color='gray', ha='right', va='center', alpha=0.2, rotation=30)
+        print(list(map(lambda x: x.get_name(), sateCn0)))
+        print(list(map(lambda x: x.get_mean_cn0(), sateCn0)))
         plt.bar(list(map(lambda x: x.get_name(), sateCn0)), list(map(lambda x: x.get_mean_cn0(), sateCn0)))
+        plt.xticks(rotation=-45)
         ax.set_ylabel('CN0 (db)')
         ax.grid(True, ls=':', c='lightgray')
-        fig.savefig(self._savePath + '/Cn0.png')
+        fig.savefig(self._savePath + f'/{name}.png')
+        plt.close(fig)
+
+    def drawFixUseTime(self, name, licenceNum, timeStrList):
+        fig, ax = plt.subplots(figsize=(12, 8))
+        plt.title(f'fixed use Time(s) since power on')
+        useTimeList = []
+        lastTime = -1
+        for strTime in timeStrList:
+            strTime = float(strTime)
+            timeSeconds = (strTime // 10000) * 3600 + ((strTime % 10000) // 100) * 60 + strTime % 100
+            fixedTime = abs(timeSeconds - lastTime)
+            if fixedTime >= 80000:
+                fixedTime = abs(timeSeconds + 86400 - lastTime)
+            useTimeList.append(abs(fixedTime) if lastTime != -1 else 0)
+            lastTime = timeSeconds
+
+            if fixedTime > 3000:
+                print(strTime)
+        plt.plot(list(range(len(useTimeList))), useTimeList)
+        ax.set_ylabel('use time (s)')
+        fig.savefig(self._savePath + f'/{name}_testPower.png')
         plt.close(fig)

@@ -117,7 +117,7 @@ def checkSerialIsSupport(port):
 def switch():
     # 关闭
     mSerial.write(bytes.fromhex("A0 01 00 A1"))
-    time.sleep(4)
+    time.sleep(5)
     # 打开
     mSerial.write(bytes.fromhex("A0 01 01 A2"))
 

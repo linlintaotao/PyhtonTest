@@ -34,7 +34,7 @@ class GNGGAFrame:
         # 当GNGGA中出现'000000.'时，天数+=1
         # if ('235959.' in timeStr) & (time.microsecond / 1000 > 900):
         #     self._time += timedelta(days=1)
-        if (time.hour == 0) & (time.minute == 0) & (time.second == 0) & (time.microsecond == 0):
+        if (time.hour == 0) & (time.minute == 0) & (time.second == 0) & (time.microsecond <= 100):
             self._time += timedelta(days=1)
         result = time.replace(year=self._time.year, month=self._time.month, day=self._time.day)
         return result
@@ -153,7 +153,7 @@ class GSV:
         GBGSV Beidou
         GLGSV GLONASS
         GAGSV Galileo
-        gsv = '$GPGSV, 3,1,10, 10,33,308,45, 12,02,143,39, 13,16,059,40, 15,47,059,49, 1*6A'
+        gsv = '$GPGSV, 3,1,10, 10,33,308,45, 12,02,143,39, 13,16,059,40, 15,47,059,49 *6A'
     """
 
     def __init__(self, name, gsv):
@@ -173,12 +173,16 @@ class GSV:
             gsd3.columns = ['s', 'n']
             gsd4 = gsv[['16', '19']].dropna()
             gsd4.columns = ['s', 'n']
+            gsd4['n'] = gsd4['n'].apply(lambda x: int(self.getStr(x)))
             gsvsn = gsd.append([gsd2, gsd3, gsd4], ignore_index=True, sort=False)
-            s = gsvsn.loc[:, 's']
+            s = gsvsn.loc[:, 's'].astype(int)
             for name in set(s):
-                cn0 = gsvsn.loc[gsvsn['s'] == name].astype(int)
-                satellites.append(Satellite(GSVNAME[i] + name, len(cn0), int(cn0['n'].mean())))
+                cn0 = gsvsn.loc[gsvsn['s'].astype(int) == name].astype(int)
+                satellites.append(Satellite(GSVNAME[i] + str(int(name)), len(cn0), int(cn0['n'].mean())))
         return sorted(satellites, key=lambda x: x.get_mean_cn0())
+
+    def getStr(self, str):
+        return str.split('*')[0]
 
     def get_satellites_status(self):
 

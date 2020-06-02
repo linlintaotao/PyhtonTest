@@ -122,19 +122,19 @@ class SerialPort:
         elif ('GNGGA' in strData) & ('E,0' in strData):
             self.zeroCount += 1
             if self.zeroCount > 200:
-                self.zeroCount = 0
-                self.connectTimes = 0
-                self.fixCount = maxCount
                 self._file.write("zero >200 Restart")
-                self.callback()
+            self.reset()
 
         elif 'E,4' in strData:
-            self.connectTimes += 1
-            if self.connectTimes > self.fixCount:
-                self.connectTimes = 0
-                self.zeroCount = 0
-                self.fixCount = maxCount
-                self.callback()
+            # self.connectTimes += 1
+            # if self.connectTimes > self.fixCount:
+            self.reset()
+
+    def reset(self):
+        self.zeroCount = 0
+        self.connectTimes = 0
+        self.fixCount = maxCount
+        self.callback()
 
     def warmStart(self):
         self.send_data('AT+WARM_RESET\r\n')

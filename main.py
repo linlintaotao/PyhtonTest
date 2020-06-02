@@ -10,13 +10,14 @@ from threading import Timer
 from src.zipmanager import make_zip
 
 manager = None
+powerTest = False
 
 
 def startAnalysis():
     try:
         analysis = AnalysisTool(dir=os.path.join(os.path.abspath('.'), "data"))
         analysis.read_file()
-        analysis.analysis()
+        analysis.analysis(testPower=powerTest)
     except Exception as e:
         print(e)
     buildReport()
@@ -46,11 +47,11 @@ if __name__ == '__main__':
     if os.path.exists(dirPath) is False:
         os.mkdir(dirPath)
     manager = Manager.instance(dir=dirPath)
-    manager.start()
+    manager.start(powerTest=powerTest)
     stop_useless_port = Timer(30, close_useless_port)
     stop_useless_port.start()
 
-    scheduler = Timer(60 * 60 * 20, stop)
+    scheduler = Timer(60 * 60 * 19, stop)
     scheduler.start()
     scheduler.join()
     startAnalysis()

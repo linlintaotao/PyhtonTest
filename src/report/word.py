@@ -12,6 +12,7 @@ class WordReporter:
         self._path = path
         self._pic = []
         self._records = None
+        self._testPower = False
 
     # 获取当前文件夹下的所有png文件
     @staticmethod
@@ -23,8 +24,9 @@ class WordReporter:
         picture.sort()
         return picture
 
-    def setRecords(self, records):
+    def setRecords(self, records, testPower):
         self._records = records
+        self._testPower = testPower
 
     def addPng(self, doc):
         for fileName in os.listdir(self._path):
@@ -40,7 +42,7 @@ class WordReporter:
         doc = Document()
         doc.add_heading('日常静态测试', 0)
         doc.add_paragraph('测试报告生成时间：%s' % self._time)
-        doc.add_paragraph('基站: Obs_30')
+        doc.add_paragraph('基站: Obs_wq')
 
         if self._records is not None:
             table = doc.add_table(rows=1, cols=4)
@@ -48,7 +50,7 @@ class WordReporter:
             hdr_cells[0].text = '串口号'
             hdr_cells[1].text = 'SwVersion'
             hdr_cells[2].text = '固定总数'
-            hdr_cells[3].text = '固定率'
+            hdr_cells[3].text = '固定率' if self._testPower is not True else 'lisence次数'
             for COM, version, fixNum, percent in self._records:
                 row_cells = table.add_row().cells
                 row_cells[0].text = COM
