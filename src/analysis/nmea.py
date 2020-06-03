@@ -34,21 +34,24 @@ class GNGGAFrame:
         # 当GNGGA中出现'000000.'时，天数+=1
         # if ('235959.' in timeStr) & (time.microsecond / 1000 > 900):
         #     self._time += timedelta(days=1)
-        if (time.hour == 0) & (time.minute == 0) & (time.second == 0) & (time.microsecond <= 100):
+
+        if (time.hour == 0) & (time.minute == 0) & (time.second == 0) & (time.microsecond/1000 <= 100):
             self._time += timedelta(days=1)
         result = time.replace(year=self._time.year, month=self._time.month, day=self._time.day)
         return result
 
     def parseData(self, data):
+        if data is None:
+            return
         """
             check gngga data timestamp and update it's type to YYmmdd-hhmmss.f
         """
         # if self.timeCheck is False:
 
-            # for time in data.loc[:, '1'].astype(float):
-            #     if time < 0.1:
-            #         print(" === %f" % time)
-            #         self._time -= timedelta(days=1)
+        # for time in data.loc[:, '1'].astype(float):
+        #     if time < 0.1:
+        #         print(" === %f" % time)
+        #         self._time -= timedelta(days=1)
 
         data.loc[:, '1'] = data.loc[:, '1'].astype(str).apply(lambda t: self.nmeatime(t))
         self._gga = data.set_index('1')
@@ -190,3 +193,11 @@ class GSV:
 
     def get_name(self):
         return self._name
+
+
+if __name__ == '__main__':
+    gnneam = GNGGAFrame("asdasd_asd", data=None, localTime=datetime.now().date())
+    print(datetime.now().date())
+    print(gnneam.nmeatime('235959.99'))
+    print(gnneam.nmeatime('000000.02'))
+
