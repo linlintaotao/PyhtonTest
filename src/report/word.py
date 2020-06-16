@@ -49,8 +49,8 @@ class WordReporter:
             hdr_cells = table.rows[0].cells
             hdr_cells[0].text = '串口号'
             hdr_cells[1].text = 'SwVersion'
-            hdr_cells[2].text = '固定总数'
-            hdr_cells[3].text = '固定率' if self._testPower is not True else 'lisence次数'
+            hdr_cells[2].text = '固定总数' if self._testPower is not True else 'lisence次数'
+            hdr_cells[3].text = '固定率' if self._testPower is not True else '固定次数'
             for COM, version, fixNum, percent in self._records:
                 row_cells = table.add_row().cells
                 row_cells[0].text = '8030' if 'COM22' in COM else '8130'

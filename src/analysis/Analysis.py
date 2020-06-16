@@ -65,7 +65,9 @@ class AnalysisTool:
                                names=['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
                                       '11', '12', '13', '14', '15', '16', '17', '18', '19', '20'],
                                error_bad_lines=False,
+                               warn_bad_lines=False,
                                low_memory=False
+
                                )
 
             # self._GSV = df.loc[df['0'].str.contains('GSV')].copy()
@@ -165,7 +167,7 @@ class AnalysisTool:
 if __name__ == '__main__':
     analysisTool = AnalysisTool()
     analysisTool.read_file()
-    analysisTool.analysis(testPower=False)
+    analysisTool.analysis(testPower=True)
     # dirPath = os.path.abspath('../..') + "/data"
     # fileName = dirPath + "/nmea0508.log"
     # df = pd.read_table(fileName, sep=',',
