@@ -59,7 +59,7 @@ class Manager:
             #     if serialName != "COM6":
             #         continue
             # print(2,serialName)
-            if serialName == 'COM8':
+            if serialName == 'COM8' or serialName == 'COM32':
                 continue
 
             serialEntity = SerialPort(iport=serialName, baudRate=115200, showLog=True)
