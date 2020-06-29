@@ -123,7 +123,7 @@ class SerialPort:
             self.zeroCount += 1
             if self.zeroCount > 200:
                 self._file.write("zero >200 Restart")
-            self.reset()
+                self.reset()
 
         elif 'E,4' in strData:
             # self.connectTimes += 1
