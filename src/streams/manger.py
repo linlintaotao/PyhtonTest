@@ -54,11 +54,7 @@ class Manager:
         if powerTest:
             powerOn()
         for serialName in serial_name_list:
-            # print(serialName)
-            # if powerTest:
-            #     if serialName != "COM6":
-            #         continue
-            # print(2,serialName)
+
             if serialName == 'COM8' or serialName == 'COM32':
                 continue
 

@@ -76,7 +76,7 @@ class SerialPort:
             self.isRunning = False
             return
         if self.checkedSupportFmi:
-            if (b"\r\n" in data) & (b'$G' in data):
+            if (b"\r\n" in data) or (b'$VERSION' in data):
                 self.checkedSupportFmi = False
                 self.supportListener(self._port)
 
