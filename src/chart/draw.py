@@ -107,9 +107,9 @@ class FmiChart:
         if testPower:
 
             # 添加文字,第一个参数是x轴坐标，第二个参数是y轴坐标，以数据的刻度为基准
-            plt.text(1, 1, '%d < 0.02cm' % errorIn2cm, fontdict={'size': '12', 'color': 'r'})
-            plt.text(1, 0.9, '%d < 0.05cm' % errorIn5cm, fontdict={'size': '12', 'color': 'r'})
-            plt.text(1, 0.8, '%d > 0.05cm' % errorCount, fontdict={'size': '12', 'color': 'r'})
+            plt.text(1, 1, '%d < 0.02m' % errorIn2cm, fontdict={'size': '12', 'color': 'r'})
+            plt.text(1, 0.9, '%d < 0.05m' % errorIn5cm, fontdict={'size': '12', 'color': 'r'})
+            plt.text(1, 0.8, '%d > 0.05m' % errorCount, fontdict={'size': '12', 'color': 'r'})
         ax.set_xlim(-axis, axis)
         ax.set_ylim(-axis, axis)
         plt.xlabel(r'points x (m)')

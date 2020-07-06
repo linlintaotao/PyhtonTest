@@ -134,7 +134,7 @@ class SerialPort:
         self.zeroCount = 0
         self.connectTimes = 0
         self.fixCount = maxCount
-        self.callback()
+        self.callback(self._port)
 
     def warmStart(self):
         self.send_data('AT+WARM_RESET\r\n')

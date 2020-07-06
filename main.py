@@ -10,7 +10,7 @@ from threading import Timer
 from src.zipmanager import make_zip
 
 manager = None
-powerTest = False
+powerTest = True
 
 
 def startAnalysis():
@@ -46,6 +46,7 @@ if __name__ == '__main__':
     dirPath = os.path.join(os.path.abspath('.'), "data")
     if os.path.exists(dirPath) is False:
         os.mkdir(dirPath)
+
     manager = Manager.instance(dir=dirPath)
     manager.start(powerTest=powerTest)
     stop_useless_port = Timer(30, close_useless_port)

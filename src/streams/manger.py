@@ -12,6 +12,9 @@ from threading import Thread
 
 mSerial = None
 
+powerSerial = ''
+fixedSerialList = []
+
 
 def find_serial():
     serialNameList = []
@@ -36,6 +39,7 @@ class Manager:
         self.serial_list = list()
         self.portList = list()
         self.timeStr = time.strftime('%Y%m%d_%H%M%S', time.localtime(time.time()))
+        self.mSerial = None
 
     @classmethod
     def instance(cls, *arg, **kwargs):
@@ -47,25 +51,26 @@ class Manager:
         return Manager._instance
 
     def start(self, powerTest=False):
-        serial_name_list = find_serial()
 
+        serial_name_list = find_serial()
         if len(serial_name_list) <= 0:
             return
         if powerTest:
-            powerOn()
+            self.powerOn()
+
         for serialName in serial_name_list:
 
-            if serialName == 'COM8' or serialName == 'COM32':
+            if serialName == 'COM8' or serialName == powerSerial:
                 continue
 
             serialEntity = SerialPort(iport=serialName, baudRate=115200, showLog=True)
             try:
                 serialEntity.start()
                 # 检查是否是板卡使用的串口
-                serialEntity.setSupportFmi(checkSerialIsSupport)
+                serialEntity.setSupportFmi(self.checkSerialIsSupport)
                 # 测试开关上电
                 if powerTest:
-                    serialEntity.setCallback(switch)
+                    serialEntity.setCallback(self.checkSerialIsFixed)
 
             except Exception as e:
                 print(e)
@@ -90,28 +95,42 @@ class Manager:
     def getDir(self):
         return self.dir
 
+    def powerOn(self):
+        if self.mSerial is not None:
+            return
+        self.mSerial = serial.Serial(powerSerial, 9600)
+        if self.mSerial.is_open:
+            self.mSerial.close()
+        self.mSerial.open()
+        # 开
+        self.mSerial.write(bytes.fromhex("A0 01 01 A2"))
+
     def close_unSupport(self):
         time.sleep(30)
         for serial_entity in self.serial_list:
             if not serial_entity.getSupportFmi():
                 continue
-            # print(serial_entity.getPort(), "stop")
-
             if serial_entity.is_running():
                 serial_entity.close_serial()
 
+    def checkSerialIsSupport(self, port):
+        print(port)
+        for serial_entity in self.serial_list:
+            # print(port, serial_entity.getPort())
+            if port == serial_entity.getPort():
+                file = FileWriter(
+                    serial_entity.getPort().split('/')[-1] + '_' + Manager.instance().timeStr + ".log",
+                    Manager.instance().getDir())
+                serial_entity.setFile(file, Manager.instance().timeStr)
+                serial_entity.send_data("AT+READ_PARA\r\n")
+                Manager.instance().ntrip.register(serial_entity)
 
-def checkSerialIsSupport(port):
-    print(port)
-    for serial_entity in Manager.instance().serialList():
-        # print(port, serial_entity.getPort())
-        if port == serial_entity.getPort():
-            file = FileWriter(
-                serial_entity.getPort().split('/')[-1] + '_' + Manager.instance().timeStr + ".log",
-                Manager.instance().getDir())
-            serial_entity.setFile(file, Manager.instance().timeStr)
-            serial_entity.send_data("AT+READ_PARA\r\n")
-            Manager.instance().ntrip.register(serial_entity)
+    def checkSerialIsFixed(self, port):
+        if port not in fixedSerialList:
+            fixedSerialList.append(port)
+        if len(fixedSerialList) == len(self.serial_list):
+            switch()
+            fixedSerialList.clear()
 
 
 def switch():
@@ -122,20 +141,8 @@ def switch():
     mSerial.write(bytes.fromhex("A0 01 01 A2"))
 
 
-def powerOn():
-    if mSerial.is_open:
-        mSerial.close()
-    mSerial.open()
-    # 开
-    mSerial.write(bytes.fromhex("A0 01 01 A2"))
-
-
-def stop():
-    mSerial.close()
-
-
 if __name__ == '__main__':
-    mSerial = serial.Serial('COM26', 9600)
+    mSerial = serial.Serial(powerSerial, 9600)
     manager = Manager().instance()
     timeStr = time.strftime('%Y%m%d_%H%M%S', time.localtime(time.time()))
     manager.start(powerTest=False)
