@@ -95,28 +95,22 @@ class NtripClient(Publisher):
     def start(self, startCheck=True):
         if startCheck is True:
             self.start_check()
-
         if self._isRunning is True:
             return
         self._reconnect = False
         try:
-
             if self._socket is not None:
                 self._socket.close()
 
             self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
             self._socket.connect((self._ip, self._port))
             self._isRunning = True
 
             if self.read_thread is not None:
                 self.read_thread = None
-
             self.read_thread = Thread(target=self.receive_data)
             self.read_thread.start()
-
             self._socket.send(self.set_mount_info(self._mountPoint))
-
             self._socket.send(self.getGGAString())
 
         except Exception as e:
@@ -126,6 +120,7 @@ class NtripClient(Publisher):
     def stop(self):
         self._isRunning = False
         self._stopByUser = True
+        self.unregisterAll()
         if self._socket is not None:
             self._socket.close()
 

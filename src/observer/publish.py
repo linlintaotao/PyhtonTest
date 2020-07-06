@@ -18,6 +18,13 @@ class Publisher:
         except ValueError:
             print('Failed to remove observer')
 
+    def unregisterAll(self):
+        try:
+            for serial in self._observers:
+                self._observers.remove(serial)
+        except ValueError:
+            print('Failed to remove observer')
+
     def notifyAll(self, data):
         if data is not None:
             self._data = data

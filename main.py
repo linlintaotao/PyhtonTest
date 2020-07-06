@@ -42,17 +42,20 @@ def stop():
 
 
 if __name__ == '__main__':
-    timeStr = time.strftime('%Y%m%d_%H%M%S', time.localtime(time.time()))
-    dirPath = os.path.join(os.path.abspath('.'), "data")
-    if os.path.exists(dirPath) is False:
-        os.mkdir(dirPath)
+    try:
+        timeStr = time.strftime('%Y%m%d_%H%M%S', time.localtime(time.time()))
+        dirPath = os.path.join(os.path.abspath('.'), "data")
+        if os.path.exists(dirPath) is False:
+            os.mkdir(dirPath)
 
-    manager = Manager.instance(dir=dirPath)
-    manager.start(powerTest=powerTest)
-    stop_useless_port = Timer(30, close_useless_port)
-    stop_useless_port.start()
+        manager = Manager.instance(dir=dirPath)
+        manager.start(powerTest=powerTest)
+        stop_useless_port = Timer(30, close_useless_port)
+        stop_useless_port.start()
 
-    scheduler = Timer(60 * 60 * 19, stop)
-    scheduler.start()
-    scheduler.join()
+        scheduler = Timer(60 * 60 * 19, stop)
+        scheduler.start()
+        scheduler.join()
+    except Exception as e:
+        stop()
     startAnalysis()
