@@ -46,7 +46,7 @@ class FmiChart:
         fixList  : fixList
     '''
 
-    def drawScatter(self, name, xPos, yPos, fixList=None, useTrue=False):
+    def drawScatter(self, name, xPos, yPos, fixList=None, useTrue=False, testPower=False):
         if len(xPos) <= 0:
             return
         xMax, xMin, yMax, yMin = max(xPos), min(xPos), max(yPos), min(yPos)
@@ -65,23 +65,27 @@ class FmiChart:
 
         ''' 根据解状态匹配对应的颜色 '''
         textInfo = ''
+        errorIn2cm, errorIn5cm = 0, 0
+        errorCount = 0
         if fixList is None:
             color = 'green'
             # accuracyItem = 0.02
-            errorIn1cm, errorIn2cm = 0, 0
             for i in range(len(xPos)):
                 a = abs(xPos[i] - xCenter)
                 b = abs(yPos[i] - yCenter)
 
                 error = math.sqrt(a ** 2 + b ** 2)
                 if error < 0.02:
-                    errorIn1cm += 1
-                elif error < 0.05:
                     errorIn2cm += 1
-            textInfo = format("Fixed Info: error<0.02m  %d%% ; 0.02<error<0.05m  %d%%" % (
-                round(errorIn1cm * 100 / len(xPos), 2),
-                round(errorIn2cm * 100 / len(xPos), 2)))
+                elif error < 0.05:
+                    errorIn5cm += 1
+            textInfo = format("Fixed Info: error<0.02m  %.1f%% ; 0.02<error<0.05m  %.1f%%" % (
+                round(errorIn2cm * 100 / len(xPos), 1),
+                round(errorIn5cm * 100 / len(xPos), 1)))
+            errorCount = len(xPos) - errorIn2cm - errorIn5cm
             print(textInfo)
+            print(len(xPos))
+            print('errorIn2cm count: %d, errorIn5cm count: %d' % (errorIn2cm, errorIn5cm))
 
         else:
             color = list(map(lambda c: self._fixColor[c.astype(int)], fixList))
@@ -99,8 +103,13 @@ class FmiChart:
         fig.text(0.75, 0.25, WATERMARK, fontsize=35, color='gray', ha='right', va='bottom', alpha=0.2, rotation=30)
 
         '''画点'''
-        ax.scatter(list(map(lambda x: x - xCenter, xPos)), list(map(lambda y: y - yCenter, yPos)), marker='1', c=color)
+        ax.scatter(list(map(lambda x: xCenter - x, xPos)), list(map(lambda y: y - yCenter, yPos)), marker='1', c=color)
+        if testPower:
 
+            # 添加文字,第一个参数是x轴坐标，第二个参数是y轴坐标，以数据的刻度为基准
+            plt.text(1, 1, '%d < 0.02cm' % errorIn2cm, fontdict={'size': '12', 'color': 'r'})
+            plt.text(1, 0.9, '%d < 0.05cm' % errorIn5cm, fontdict={'size': '12', 'color': 'r'})
+            plt.text(1, 0.8, '%d > 0.05cm' % errorCount, fontdict={'size': '12', 'color': 'r'})
         ax.set_xlim(-axis, axis)
         ax.set_ylim(-axis, axis)
         plt.xlabel(r'points x (m)')

@@ -93,7 +93,8 @@ class AnalysisTool:
                 self.drawFixUseTime(dirPath, portName.split('_')[0], testTimes, fixedUseTimeList)
             else:
                 records.append((portName.split('_')[0], swVersion, str(maxNum), str(round(fixNum * 100 / maxNum, 2))))
-                self.drawLine()
+
+            self.drawLine()
 
         """ 生成word文档"""
         print(records)
@@ -145,9 +146,9 @@ class AnalysisTool:
         for data in self._ggaEntity:
             xList, yList, xFixList, yFixList, fixList = data.get_scatter()
             if len(xFixList) != 0:
-                self.fmiChar.drawScatter('ScatterFix', xFixList, yFixList)
-            if testPower:
-                continue
+                self.fmiChar.drawScatter('ScatterFix', xFixList, yFixList, testPower=testPower)
+            # if testPower:
+            #     continue
             self.fmiChar.drawScatter('ScatterAll', xList, yList, fixList)
 
     def drawLine(self, gsv=None):
