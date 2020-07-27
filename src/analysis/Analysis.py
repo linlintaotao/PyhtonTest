@@ -168,7 +168,7 @@ class AnalysisTool:
 if __name__ == '__main__':
     analysisTool = AnalysisTool()
     analysisTool.read_file()
-    analysisTool.analysis(testPower=True)
+    analysisTool.analysis(testPower=False)
     # dirPath = os.path.abspath('../..') + "/data"
     # fileName = dirPath + "/nmea0508.log"
     # df = pd.read_table(fileName, sep=',',

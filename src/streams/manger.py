@@ -12,17 +12,15 @@ from threading import Thread
 
 mSerial = None
 
-powerSerial = ''
+powerSerial = 'COM32'
 fixedSerialList = []
 
 
 def find_serial():
     serialNameList = []
     portList = list(SerialManager.comports())
-    print(portList)
     for i in portList:
         serialPath = list(i)[0]
-        print(serialPath)
         if 'Bluetooth' not in serialPath:
             serialNameList.append(serialPath)
     return serialNameList
@@ -33,9 +31,9 @@ class Manager:
 
     def __init__(self, dir=os.path.abspath('../..') + "/data/"):
         self.dir = dir
-        self.ntrip = NtripClient(mountPoint='Obs_five')
-        # self.ntrip = NtripClient(ip='lab.ntrip.qxwz.com', port=8002, user="stmicro0010", password='50fcc29',
-        #                          mountPoint='SH_GALILEO')
+        # self.ntrip = NtripClient(mountPoint='Obs_five')
+        self.ntrip = NtripClient(ip='lab.ntrip.qxwz.com', port=8002, user="stmicro0010", password='50fcc29',
+                                 mountPoint='SH_GALILEO')
         self.serial_list = list()
         self.portList = list()
         self.timeStr = time.strftime('%Y%m%d_%H%M%S', time.localtime(time.time()))
@@ -62,7 +60,7 @@ class Manager:
 
             if serialName == 'COM8' or serialName == powerSerial:
                 continue
-
+            print(serialName, '1213')
             serialEntity = SerialPort(iport=serialName, baudRate=115200, showLog=True)
             try:
                 serialEntity.start()
@@ -71,7 +69,6 @@ class Manager:
                 # 测试开关上电
                 if powerTest:
                     serialEntity.setCallback(self.checkSerialIsFixed)
-
             except Exception as e:
                 print(e)
                 continue
@@ -116,7 +113,7 @@ class Manager:
     def checkSerialIsSupport(self, port):
         print(port)
         for serial_entity in self.serial_list:
-            # print(port, serial_entity.getPort())
+            print(port, serial_entity.getPort())
             if port == serial_entity.getPort():
                 file = FileWriter(
                     serial_entity.getPort().split('/')[-1] + '_' + Manager.instance().timeStr + ".log",
@@ -126,23 +123,24 @@ class Manager:
                 Manager.instance().ntrip.register(serial_entity)
 
     def checkSerialIsFixed(self, port):
+
+        print('checkSerialIsFixed', port)
         if port not in fixedSerialList:
             fixedSerialList.append(port)
-        if len(fixedSerialList) == len(self.serial_list):
-            switch()
-            fixedSerialList.clear()
+            if len(fixedSerialList) == len(self.serial_list):
+                self.switch()
+                fixedSerialList.clear()
 
-
-def switch():
-    # 关闭
-    mSerial.write(bytes.fromhex("A0 01 00 A1"))
-    time.sleep(5)
-    # 打开
-    mSerial.write(bytes.fromhex("A0 01 01 A2"))
+    def switch(self):
+        # 关闭
+        self.mSerial.write(bytes.fromhex("A0 01 00 A1"))
+        time.sleep(5)
+        # 打开
+        self.mSerial.write(bytes.fromhex("A0 01 01 A2"))
 
 
 if __name__ == '__main__':
-    mSerial = serial.Serial(powerSerial, 9600)
+    # mSerial = serial.Serial(powerSerial, 9600)
     manager = Manager().instance()
     timeStr = time.strftime('%Y%m%d_%H%M%S', time.localtime(time.time()))
-    manager.start(powerTest=False)
+    manager.start(powerTest=True)

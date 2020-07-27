@@ -10,7 +10,7 @@ from threading import Timer
 from src.zipmanager import make_zip
 
 manager = None
-powerTest = True
+powerTest = False
 
 
 def startAnalysis():
