@@ -9,6 +9,11 @@ from src.analysis.nmea import GNGGAFrame, GSV
 from src.chart.draw import FmiChart
 from src.report.word import WordReporter
 
+from pandas.plotting import register_matplotlib_converters
+from src.analysis import gnss_distance
+
+register_matplotlib_converters()
+
 
 # 获取文件编码类型
 def get_encoding(file):
@@ -33,6 +38,7 @@ class AnalysisTool:
             if file.endswith('log'):
                 self._dataFiles.append(file)
                 self.fileList.append(file)
+        return self.fileList
 
     def analysis(self, testPower=False):
         records = []
@@ -67,7 +73,6 @@ class AnalysisTool:
                                error_bad_lines=False,
                                warn_bad_lines=False,
                                low_memory=False
-
                                )
 
             # self._GSV = df.loc[df['0'].str.contains('GSV')].copy()
@@ -119,7 +124,7 @@ class AnalysisTool:
             for line in rf.readlines():
                 readLimit += 1
 
-                if len(startTime) <= 0 & ("StartTime" in line):
+                if len(startTime) <= 0 and ("StartTime" in line):
                     startTime = line.split('=')[-1].replace('\n', '')
                     continue
 
@@ -130,7 +135,7 @@ class AnalysisTool:
                 if testPower is True:
                     if "+++ license activated" in line:
                         testTimes += 1
-                    elif ("E,4" in line) & ("GNGGA" in line):
+                    elif ("E,4" in line) and ("GNGGA" in line):
                         if not fixed:
                             fixUseTimeList.append(line.split(',')[1])
                         fixed = True
@@ -166,21 +171,81 @@ class AnalysisTool:
 
 
 if __name__ == '__main__':
-    analysisTool = AnalysisTool()
-    analysisTool.read_file()
-    analysisTool.analysis(testPower=False)
-    # dirPath = os.path.abspath('../..') + "/data"
-    # fileName = dirPath + "/nmea0508.log"
-    # df = pd.read_table(fileName, sep=',',
-    #                    encoding=get_encoding(fileName),
-    #                    header=None,
-    #                    names=['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
-    #                           '11', '12', '13', '14', '15', '16', '17', '18', '19', '20'],
-    #                    error_bad_lines=False,
-    #                    low_memory=False
-    #                    )
-    # data_GSV = df.loc[df['0'].str.contains('GSV')].copy()
+    # analysisTool = AnalysisTool()
+    # analysisTool.read_file()
+    # analysisTool.analysis(testPower=False)
+
+    # latTrue = 30.45872751
+    # lonTrue = 114.404825
+
+    # 4003.9262877, N, 11613.7479358, E, 4, 12, 0.63, 44.586, M, -9.102
+    # 4003.9298348,N,11613.7673410,E,4,12,0.65,44.854,M,-9.101
+    # $GPGGA,103836.40,4003.9193890,N,11613.9090428,E,4,12,0.58,44.693,M,-9.093,M,0.4,0000*5A
+    # $GPGGA, 103836.40, 4003.9193890, N, 11613.9090428, E, 4, 12, 0.58, 44.693, M, -9.093, M, 0.4, 0000 * 5
+    # $GPGGA,105009.40,4003.9075392,N,11613.9133669,E,4,12,0.62,44.737,M,-9.093,M,0.4,0000*51
+    if True:
+
+        '''
+        A.   13.258
+        B.   7.934
+        C.   12.579
+        '''
+
+        # latTrue = gnss_distance.formate(4003.9075392)
+        # lonTrue = gnss_distance.formate(11613.9133669)
+
+        # latTrue = gnss_distance.DmsToDdd('30°27′31.419036″')
+        # lonTrue = gnss_distance.DmsToDdd('114°24′17.37″')
+        # altitude = 13.258
+
+        # latTrue = gnss_distance.DmsToDdd('30°27′28.7538″')
+        # lonTrue = gnss_distance.DmsToDdd('114°24′17.191794″')
+        # altitude = 7.934
+
+        latTrue = gnss_distance.DmsToDdd('30°27′20.766114″')
+        lonTrue = gnss_distance.DmsToDdd('114°24′08.382822″')
+        altitude = 12.579
+
+        pointTruth = [latTrue, lonTrue, altitude]
+
+        dirPath = os.path.abspath('../..') + "/data"
+        fileName = dirPath + "/postProcess.log"
+        df = pd.read_table(fileName, sep=',',
+                           encoding=get_encoding(fileName),
+                           header=None,
+                           names=['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
+                                  '11', '12', '13', '14', '15', '16', '17', '18', '19', '20'],
+                           error_bad_lines=False,
+                           low_memory=False
+                           )
+
+        dirPath = fileName.split('.log')[0]
+        if os.path.exists(dirPath) is False:
+            os.mkdir(dirPath)
+
+        fmiChar = FmiChart(path=dirPath)
+
+        # 删除异常数据
+        df = df.drop(index=df.loc[(df['1'].isna())].index)
+        df = df.drop(index=df.loc[(df['6'].isna())].index)
+        df = df.drop(index=df.loc[(df['6'].astype(str) == '0')].index)
+
+        gga = GNGGAFrame(dirPath,
+                         df.loc[(df['0'].astype(str) == '$GNGGA') | (df['0'].astype(str) == '$GPGGA')].copy(),
+                         datetime.now().date())
+        xList, yList, xFixList, yFixList, fixList = gga.get_scatter()
+        if len(xFixList) != 0:
+            fmiChar.drawScatter('ScatterFix', xFixList, yFixList, testPower=False, useTrue=True,
+                                latTrue=latTrue, lon=lonTrue)
+        fmiChar.drawScatter('ScatterAll', xList, yList, fixList, useTrue=True,
+                            latTrue=latTrue, lon=lonTrue)
+
+        fmiChar.drawCdf(dataFrameList=None, dataFrame=gga, pointTruth=pointTruth, singlePoint=True)
+        fmiChar.drawCdf(dataFrameList=None, dataFrame=gga, pointTruth=pointTruth, singlePoint=True, onlyFix=True)
+        ggaList = [gga]
+        fmiChar.drawLineChart(ggaList)
+
     # gsv = GSV(fileName, df.loc[df['0'].str.contains('GSV')].copy())
-    # fmiChar = FmiChart(path=dirPath)
+    # data_GSV = df.loc[df['0'].str.contains('GSV')].copy()
     # # use-splitters
     # fmiChar.drawSateCn0('0508-gsv', gsv.get_satellites_status())

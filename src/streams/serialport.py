@@ -48,9 +48,6 @@ class SerialPort:
     def open_serial(self):
         try:
             self._entity = serial.Serial(self._port, self._baudRate, timeout=3)
-            # if self._entity.isOpen():
-            #     self._entity.close()
-            # self._entity.open()
         except:
             raise IOError(f'can not open serial{self._port}:{self._baudRate}')
 
@@ -87,9 +84,7 @@ class SerialPort:
             if self.callback is not None:
                 self.autoTest(data)
         if self._file:
-            # print("write data = %s" % str(data))
             self._file.write(data)
-        # return data
 
     def notify(self, data):
         try:

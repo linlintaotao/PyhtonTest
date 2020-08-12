@@ -87,6 +87,8 @@ class FmiChart:
             print(len(xPos))
             print('errorIn2cm count: %d, errorIn5cm count: %d' % (errorIn2cm, errorIn5cm))
 
+            textInfo = 'Scatter FIXED'
+
         else:
             color = list(map(lambda c: self._fixColor[c.astype(int)], fixList))
             textInfo = 'Scatter All'
@@ -105,7 +107,6 @@ class FmiChart:
         '''画点'''
         ax.scatter(list(map(lambda x: xCenter - x, xPos)), list(map(lambda y: y - yCenter, yPos)), marker='1', c=color)
         if testPower:
-
             # 添加文字,第一个参数是x轴坐标，第二个参数是y轴坐标，以数据的刻度为基准
             plt.text(1, 1, '%d < 0.02m' % errorIn2cm, fontdict={'size': '12', 'color': 'r'})
             plt.text(1, 0.9, '%d < 0.05m' % errorIn5cm, fontdict={'size': '12', 'color': 'r'})
@@ -145,14 +146,15 @@ class FmiChart:
     def drawCdf(self, dataFrameList, dataTruth=None, dataFrame=None, pointTruth=None, singlePoint=False, onlyFix=False):
         nameList = []
         if dataFrame is not None:
-            nameList.append(dataFrame.get_name() + '_Fix_' if onlyFix else '_')
-            self.drawSingleCdf(dataFrame, nameList, pointTruth=None, onlyFix=onlyFix)
+            name = dataFrame.get_name().split('/')[-1]
+            nameList.append(name + '_Fix_' if onlyFix else '_')
+            self.drawSingleCdf(dataFrame, nameList, pointTruth=pointTruth, onlyFix=onlyFix)
             return
 
         for dataFram in dataFrameList:
             nameList.append(dataFram.get_name())
             if singlePoint:
-                self.drawSingleCdf(dataFram, dataFram.get_name(), pointTruth=None, onlyFix=onlyFix)
+                self.drawSingleCdf(dataFram, dataFram.get_name(), pointTruth=pointTruth, onlyFix=onlyFix)
                 continue
             else:
                 # todo 跟另一个数据对比
@@ -172,12 +174,11 @@ class FmiChart:
         if onlyFix & (len(n_diff) <= 0 | len(e_diff) <= 0 | len(u_diff) <= 0):
             return
 
-        if onlyFix & (len(n_diff) <= 0 | len(e_diff) < 0 | len(u_diff) < 0):
-            return
         n_diffList.append(n_diff)
         e_diffList.append(e_diff)
         u_diffList.append(u_diff)
         hz_diffList.append(np.sqrt(n_diff[:] ** 2 + e_diff[:] ** 2))
+
         fixList.append(dataFram.get_state(onlyFix=onlyFix).values)
         self.drawNEU(n_diffList, e_diffList, u_diffList, fixList, name, onlyFix=onlyFix)
         self.drawHorizontal(hz_diffList, name, TITLES[3])
@@ -257,8 +258,6 @@ class FmiChart:
         plt.title(f'{name} Satellite cn0 mean')
         plt.tick_params(labelsize=6)
         fig.text(0.85, 0.5, WATERMARK, fontsize=35, color='gray', ha='right', va='center', alpha=0.2, rotation=30)
-        print(list(map(lambda x: x.get_name(), sateCn0)))
-        print(list(map(lambda x: x.get_mean_cn0(), sateCn0)))
         plt.bar(list(map(lambda x: x.get_name(), sateCn0)), list(map(lambda x: x.get_mean_cn0(), sateCn0)))
         plt.xticks(rotation=-45)
         ax.set_ylabel('CN0 (db)')

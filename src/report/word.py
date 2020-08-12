@@ -29,7 +29,9 @@ class WordReporter:
         self._testPower = testPower
 
     def addPng(self, doc):
-        for fileName in os.listdir(self._path):
+        listfile = os.listdir(self._path)
+        listfile.sort()
+        for fileName in listfile:
             dirName = os.path.join(self._path, fileName)
             if os.path.isdir(dirName):
                 doc.add_paragraph('%s 图例' % fileName.split('-')[0], style='Intense Quote')
@@ -70,5 +72,5 @@ if __name__ == '__main__':
         ('4', '631', 'Spam, spam, eggs, and spam', 't')
     )
     word = WordReporter(os.path.abspath('../..') + "/data", "12345678")
-    word.setRecords(records)
+    word.setRecords(records, testPower=False)
     word.build()
