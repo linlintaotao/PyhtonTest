@@ -5,7 +5,7 @@ from threading import Thread
 import serial.tools.list_ports
 import time
 
-maxCount = 1e4
+maxCount = 30
 
 
 class SerialPort:
@@ -103,7 +103,7 @@ class SerialPort:
             self.open_serial()
         if self._read_thread is None:
             self._read_thread = None
-        self._read_thread = Thread(target=self.read_thread)
+        self._read_thread = Thread(target=self.read_thread,daemon=True)
         self._read_thread.start()
 
     def autoTest(self, data):
@@ -121,9 +121,9 @@ class SerialPort:
                 self.reset()
 
         elif 'E,4' in strData:
-            # self.connectTimes += 1
-            # if self.connectTimes > self.fixCount:
-            self.reset()
+            self.connectTimes += 1
+            if self.connectTimes > self.fixCount:
+                self.reset()
 
     def reset(self):
         self.zeroCount = 0

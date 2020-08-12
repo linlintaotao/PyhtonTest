@@ -15,11 +15,17 @@ class GNGGAFrame:
         self.fixState = None
         self.fixLongitude = None
         self.parseData(data)
+        self.parse_time = 0
 
     def get_name(self):
         return self._name
 
     def nmeatime(self, date):
+        """
+        :param date:
+        :param powerTest: 如果是开关测试
+        :return:
+        """
         strData = str(date).split('.')
         while len(strData[0]) < 6:
             strData[0] = '0' + strData[0]
@@ -30,8 +36,11 @@ class GNGGAFrame:
             time += timedelta(seconds=1)
             time = time.replace(microsecond=0)
 
-        if (time.hour == 0) & (time.minute == 0) & (time.second == 0) & (time.microsecond / 1000 <= 100):
+        if self.parse_time > time:
             self._time += timedelta(days=1)
+        self.parse_time = time
+        # if (time.hour == 0) & (time.minute == 0) & (time.second == 0) & (time.microsecond / 1000 <= 100):
+        #     self._time += timedelta(days=1)
         result = time.replace(year=self._time.year, month=self._time.month, day=self._time.day)
         return result
 

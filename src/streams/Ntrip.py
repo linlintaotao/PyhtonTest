@@ -108,7 +108,7 @@ class NtripClient(Publisher):
 
             if self.read_thread is not None:
                 self.read_thread = None
-            self.read_thread = Thread(target=self.receive_data)
+            self.read_thread = Thread(target=self.receive_data,daemon=True)
             self.read_thread.start()
             self._socket.send(self.set_mount_info(self._mountPoint))
             self._socket.send(self.getGGAString())
@@ -163,7 +163,7 @@ class NtripClient(Publisher):
 
         if self.check_thread is not None:
             self.check_thread = None
-        self.check_thread = Thread(target=self.check)
+        self.check_thread = Thread(target=self.check,daemon=True)
         self.check_thread.start()
 
 

@@ -12,7 +12,7 @@ from threading import Thread
 
 mSerial = None
 
-powerSerial = 'COM32'
+powerSerial = 'COM7'
 fixedSerialList = []
 
 
@@ -31,13 +31,14 @@ class Manager:
 
     def __init__(self, dir=os.path.abspath('../..') + "/data/"):
         self.dir = dir
-        # self.ntrip = NtripClient(mountPoint='Obs_five')
-        self.ntrip = NtripClient(ip='lab.ntrip.qxwz.com', port=8002, user="stmicro0010", password='50fcc29',
-                                 mountPoint='SH_GALILEO')
+        self.ntrip = NtripClient(mountPoint='Obs')
+        # self.ntrip = NtripClient(ip='lab.ntrip.qxwz.com', port=8002, user="stmicro0010", password='50fcc29',
+        #                          mountPoint='SH_GALILEO')
         self.serial_list = list()
         self.portList = list()
         self.timeStr = time.strftime('%Y%m%d_%H%M%S', time.localtime(time.time()))
         self.mSerial = None
+        self.serialInUseNum = 0
 
     @classmethod
     def instance(cls, *arg, **kwargs):
@@ -60,7 +61,6 @@ class Manager:
 
             if serialName == 'COM8' or serialName == powerSerial:
                 continue
-            print(serialName, '1213')
             serialEntity = SerialPort(iport=serialName, baudRate=115200, showLog=True)
             try:
                 serialEntity.start()
@@ -115,6 +115,7 @@ class Manager:
         for serial_entity in self.serial_list:
             print(port, serial_entity.getPort())
             if port == serial_entity.getPort():
+                self.serialInUseNum += 1
                 file = FileWriter(
                     serial_entity.getPort().split('/')[-1] + '_' + Manager.instance().timeStr + ".log",
                     Manager.instance().getDir())
@@ -127,7 +128,7 @@ class Manager:
         print('checkSerialIsFixed', port)
         if port not in fixedSerialList:
             fixedSerialList.append(port)
-            if len(fixedSerialList) == len(self.serial_list):
+            if len(fixedSerialList) == self.serialInUseNum:
                 self.switch()
                 fixedSerialList.clear()
 
@@ -141,6 +142,9 @@ class Manager:
 
 if __name__ == '__main__':
     # mSerial = serial.Serial(powerSerial, 9600)
-    manager = Manager().instance()
+    dirPath = os.path.join(os.path.abspath('.'), "data")
+    if os.path.exists(dirPath) is False:
+        os.mkdir(dirPath)
+    manager = Manager().instance(dirPath=dirPath)
     timeStr = time.strftime('%Y%m%d_%H%M%S', time.localtime(time.time()))
     manager.start(powerTest=True)
