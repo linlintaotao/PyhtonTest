@@ -12,8 +12,10 @@ from threading import Thread
 
 mSerial = None
 
-powerSerial = 'COM7'
+powerSerial = 'COM48'
 fixedSerialList = []
+
+switchOff = True
 
 
 def find_serial():
@@ -99,8 +101,13 @@ class Manager:
         if self.mSerial.is_open:
             self.mSerial.close()
         self.mSerial.open()
-        # 开
-        self.mSerial.write(bytes.fromhex("A0 01 01 A2"))
+
+        if switchOff:
+            # close
+            self.mSerial.write(bytes.fromhex("A0 01 00 A1"))
+        else:
+            # 开
+            self.mSerial.write(bytes.fromhex("A0 01 01 A2"))
 
     def close_unSupport(self):
         time.sleep(30)
@@ -120,12 +127,12 @@ class Manager:
                     serial_entity.getPort().split('/')[-1] + '_' + Manager.instance().timeStr + ".log",
                     Manager.instance().getDir())
                 serial_entity.setFile(file, Manager.instance().timeStr)
-                serial_entity.send_data("AT+READ_PARA\r\n")
+                # if not uart3Test:
+                # serial_entity.send_data("AT+READ_PARA\r\n")
                 Manager.instance().ntrip.register(serial_entity)
 
     def checkSerialIsFixed(self, port):
 
-        print('checkSerialIsFixed', port)
         if port not in fixedSerialList:
             fixedSerialList.append(port)
             if len(fixedSerialList) == self.serialInUseNum:
@@ -133,11 +140,18 @@ class Manager:
                 fixedSerialList.clear()
 
     def switch(self):
-        # 关闭
-        self.mSerial.write(bytes.fromhex("A0 01 00 A1"))
-        time.sleep(5)
-        # 打开
-        self.mSerial.write(bytes.fromhex("A0 01 01 A2"))
+        if switchOff:
+            # 打开
+            self.mSerial.write(bytes.fromhex("A0 01 01 A2"))
+            time.sleep(5)
+            # 关闭
+            self.mSerial.write(bytes.fromhex("A0 01 00 A1"))
+        else:
+            # 关闭
+            self.mSerial.write(bytes.fromhex("A0 01 00 A1"))
+            time.sleep(5)
+            # 打开
+            self.mSerial.write(bytes.fromhex("A0 01 01 A2"))
 
 
 if __name__ == '__main__':
@@ -145,6 +159,6 @@ if __name__ == '__main__':
     dirPath = os.path.join(os.path.abspath('.'), "data")
     if os.path.exists(dirPath) is False:
         os.mkdir(dirPath)
-    manager = Manager().instance(dirPath=dirPath)
+    manager = Manager().instance(dir=dirPath)
     timeStr = time.strftime('%Y%m%d_%H%M%S', time.localtime(time.time()))
     manager.start(powerTest=True)

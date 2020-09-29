@@ -25,6 +25,7 @@ class SerialPort:
         self.supportListener = None
         self.checkedSupportFmi = True
         self.isRunning = True
+        self.WarmResetTest = True
 
     def setCallback(self, callback):
         self.callback = callback
@@ -83,8 +84,11 @@ class SerialPort:
             print(str(data))
             if self.callback is not None:
                 self.autoTest(data)
+            # if self.WarmResetTest and b'E,4' in data:
+            #     self.warmStart()
         if self._file:
-            self._file.write(data)
+            if b'[' not in data or b']' not in data:
+                self._file.write(data)
 
     def notify(self, data):
         try:
@@ -103,12 +107,11 @@ class SerialPort:
             self.open_serial()
         if self._read_thread is None:
             self._read_thread = None
-        self._read_thread = Thread(target=self.read_thread,daemon=True)
+        self._read_thread = Thread(target=self.read_thread, daemon=True)
         self._read_thread.start()
 
     def autoTest(self, data):
         strData = str(data)
-
         if '+++ license activated' in strData:
             self.connectTimes = 0
             self.fixCount = 5
@@ -132,8 +135,10 @@ class SerialPort:
         self.callback(self._port)
 
     def warmStart(self):
-        self.send_data('AT+WARM_RESET\r\n')
-        timeNow = time.strftime('%H:%M:%S', time.localtime(time.time()))
-        self.sendTimes += 1
-        self._file.write("Warm Restart Time= %s : %d\r\n" % (timeNow, self.sendTimes))
-        self.connectTimes = 0
+        self.connectTimes += 1
+        if self.connectTimes > 10:
+            self.send_data('AT+WARM_RESET\r\n')
+            timeNow = time.strftime('%H:%M:%S', time.localtime(time.time()))
+            self.sendTimes += 1
+            self._file.write("Warm Restart Time= %s : %d\r\n" % (timeNow, self.sendTimes))
+            self.connectTimes = 0

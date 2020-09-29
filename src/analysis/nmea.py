@@ -14,8 +14,8 @@ class GNGGAFrame:
         self.fixAltitude = None
         self.fixState = None
         self.fixLongitude = None
+        self.parse_time = None
         self.parseData(data)
-        self.parse_time = 0
 
     def get_name(self):
         return self._name
@@ -27,6 +27,10 @@ class GNGGAFrame:
         :return:
         """
         strData = str(date).split('.')
+        timeToInt = float(strData[0])
+        if self.parse_time is None:
+            self.parse_time = timeToInt
+
         while len(strData[0]) < 6:
             strData[0] = '0' + strData[0]
         timeStr = strData[0] + "." + strData[1]
@@ -36,11 +40,10 @@ class GNGGAFrame:
             time += timedelta(seconds=1)
             time = time.replace(microsecond=0)
 
-        if self.parse_time > time:
+        if self.parse_time > timeToInt:
             self._time += timedelta(days=1)
-        self.parse_time = time
-        # if (time.hour == 0) & (time.minute == 0) & (time.second == 0) & (time.microsecond / 1000 <= 100):
-        #     self._time += timedelta(days=1)
+
+        self.parse_time = timeToInt
         result = time.replace(year=self._time.year, month=self._time.month, day=self._time.day)
         return result
 
@@ -50,20 +53,31 @@ class GNGGAFrame:
         """
             check gngga data timestamp and update it's type to YYmmdd-hhmmss.f
         """
-
         data.loc[:, '1'] = data.loc[:, '1'].astype(str).apply(lambda t: self.nmeatime(t))
         self._gga = data.set_index('1')
         self.latitude = self._gga.loc[:, '2'].astype(float).apply(lambda x: self.dmTodd(x))
         self.longitude = self._gga.loc[:, '4'].astype(float).apply(lambda x: self.dmTodd(x))
-        self.state = self._gga.loc[:, '6'].astype(int)
-        self.satNum = self._gga.loc[:, '7'].astype(float)
-        self.altitude = self._gga.loc[:, '9'].astype(float)
+        self.state = self._gga.loc[:, '6'].apply(lambda x: self.toint(x))
+        self.satNum = self._gga.loc[:, '7'].apply(lambda x: self.tofloat(x))
+        self.altitude = self._gga.loc[:, '9'].apply(lambda x: self.tofloat(x))
 
         fixGGA = self._gga.loc[self._gga['6'].astype(int) == 4, :]
         self.fixLatitude = fixGGA.loc[:, '2'].astype(float).apply(lambda x: self.dmTodd(x))
         self.fixLongitude = fixGGA.loc[:, '4'].astype(float).apply(lambda x: self.dmTodd(x))
-        self.fixAltitude = fixGGA.loc[:, '9'].astype(float) + fixGGA.loc[:, '11'].astype(float)
+        self.fixAltitude = self.altitude + fixGGA.loc[:, '11'].apply(lambda x: self.tofloat(x))
         self.fixState = fixGGA.loc[:, '6'].astype(int)
+
+    def tofloat(self, x):
+        try:
+            return float(x)
+        except Exception as e:
+            return 0
+
+    def toint(self, x):
+        try:
+            return int(x)
+        except Exception as e:
+            return 0
 
     def dmTodd(self, dm):
         dd = int(dm / 100)

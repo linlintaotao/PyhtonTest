@@ -171,9 +171,9 @@ class AnalysisTool:
 
 
 if __name__ == '__main__':
-    # analysisTool = AnalysisTool()
-    # analysisTool.read_file()
-    # analysisTool.analysis(testPower=False)
+    analysisTool = AnalysisTool()
+    analysisTool.read_file()
+    analysisTool.analysis(testPower=False)
 
     # latTrue = 30.45872751
     # lonTrue = 114.404825
@@ -183,7 +183,7 @@ if __name__ == '__main__':
     # $GPGGA,103836.40,4003.9193890,N,11613.9090428,E,4,12,0.58,44.693,M,-9.093,M,0.4,0000*5A
     # $GPGGA, 103836.40, 4003.9193890, N, 11613.9090428, E, 4, 12, 0.58, 44.693, M, -9.093, M, 0.4, 0000 * 5
     # $GPGGA,105009.40,4003.9075392,N,11613.9133669,E,4,12,0.62,44.737,M,-9.093,M,0.4,0000*51
-    if True:
+    if False:
 
         '''
         A.   13.258

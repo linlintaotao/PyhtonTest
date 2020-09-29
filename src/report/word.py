@@ -55,7 +55,7 @@ class WordReporter:
             hdr_cells[3].text = '固定率' if self._testPower is not True else '固定次数'
             for COM, version, fixNum, percent in self._records:
                 row_cells = table.add_row().cells
-                row_cells[0].text = (COM + '_8130') if 'COM25' not in COM else (COM + '_HUADA')
+                row_cells[0].text = (COM + '_P20U') if 'COM24' not in COM else (COM + '_P20H')
                 row_cells[1].text = version
                 row_cells[2].text = fixNum
                 row_cells[3].text = percent
