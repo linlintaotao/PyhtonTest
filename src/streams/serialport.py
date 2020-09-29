@@ -61,7 +61,7 @@ class SerialPort:
 
     def send_data(self, data):
         if self._entity.is_open:
-            print("send data = %s" % str(data))
+            # print("send data = %s" % str(data))
             if type(data) is str:
                 data = data.encode()
             self._entity.write(data)
@@ -81,7 +81,7 @@ class SerialPort:
         if len(data) <= 0:
             return None
         if self._showLog is True:
-            print(str(data))
+            # print(str(data))
             if self.callback is not None:
                 self.autoTest(data)
             # if self.WarmResetTest and b'E,4' in data:
