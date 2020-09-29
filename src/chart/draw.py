@@ -187,7 +187,6 @@ class FmiChart:
 
         fig, ax = plt.subplots(figsize=(16, 10))
         anx_u = plt.subplot(313)
-
         xMax, xMin = 0, 0
 
         for i in range(len(u_diff)):

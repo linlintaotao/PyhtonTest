@@ -127,8 +127,8 @@ class Manager:
                     serial_entity.getPort().split('/')[-1] + '_' + Manager.instance().timeStr + ".log",
                     Manager.instance().getDir())
                 serial_entity.setFile(file, Manager.instance().timeStr)
-                # if not uart3Test:
-                # serial_entity.send_data("AT+READ_PARA\r\n")
+                # if not self:
+                serial_entity.send_data("AT+READ_PARA\r\n")
                 Manager.instance().ntrip.register(serial_entity)
 
     def checkSerialIsFixed(self, port):
