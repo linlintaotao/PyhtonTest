@@ -22,7 +22,7 @@ class FileWriter:
             self._entity = open(self._path, 'wb')
             self.state = True
         except Exception as e:
-            # print(f'open file %s error %s' % (self._name, e))
+            print(f'open file %s error %s' % (self._name, e))
             if self._entity is not None:
                 self._entity.close()
 

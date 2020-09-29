@@ -83,8 +83,6 @@ class FmiChart:
                 round(errorIn2cm * 100 / len(xPos), 1),
                 round(errorIn5cm * 100 / len(xPos), 1)))
             errorCount = len(xPos) - errorIn2cm - errorIn5cm
-            print(textInfo)
-            print(len(xPos))
             print('errorIn2cm count: %d, errorIn5cm count: %d' % (errorIn2cm, errorIn5cm))
 
             textInfo = 'Scatter FIXED'
@@ -178,8 +176,8 @@ class FmiChart:
         e_diffList.append(e_diff)
         u_diffList.append(u_diff)
         hz_diffList.append(np.sqrt(n_diff[:] ** 2 + e_diff[:] ** 2))
-
         fixList.append(dataFram.get_state(onlyFix=onlyFix).values)
+
         self.drawNEU(n_diffList, e_diffList, u_diffList, fixList, name, onlyFix=onlyFix)
         self.drawHorizontal(hz_diffList, name, TITLES[3])
 
@@ -191,7 +189,6 @@ class FmiChart:
 
         for i in range(len(u_diff)):
             data = u_diff[i]
-
             # 获取每个点的解状态
             colors = list(map(lambda c: self._fixColor[c.astype(int)], fixList[i]))
             """ 获取采集的数据在x轴上的范围 来为不同状态的点加上特定的颜色"""
@@ -203,12 +200,17 @@ class FmiChart:
             xMin = timeMin if (timeMin < xMin) | (xMin == 0) else xMin
 
             ''' 画点 （x= 时间,y= NEU上的误差，c = color）'''
+
             anx_u.scatter(data.index, data.values, c=colors, marker='.')
+
+        if xMin == xMax:
+            return
 
         anx_e = plt.subplot(312, sharex=anx_u)
         anx_n = plt.subplot(311, sharex=anx_u)
         for i in range(len(n_diff)):
             data = n_diff[i]
+
             # 获取每个点的解状态
             colors = list(map(lambda c: self._fixColor[c.astype(int)], fixList[i]))
             ''' 画点 （x= 时间,y= NEU上的误差，c = color）'''
@@ -217,6 +219,7 @@ class FmiChart:
 
         for i in range(len(e_diff)):
             data = e_diff[i]
+
             # 获取每个点的解状态
             colors = list(map(lambda c: self._fixColor[c.astype(int)], fixList[i]))
             ''' 画点 （x= 时间,y= NEU上的误差，c = color）'''

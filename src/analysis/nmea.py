@@ -14,7 +14,7 @@ class GNGGAFrame:
         self.fixAltitude = None
         self.fixState = None
         self.fixLongitude = None
-        self.parse_time = None
+        self.parse_time = 0
         self.parseData(data)
 
     def get_name(self):
@@ -64,7 +64,8 @@ class GNGGAFrame:
         fixGGA = self._gga.loc[self._gga['6'].astype(int) == 4, :]
         self.fixLatitude = fixGGA.loc[:, '2'].astype(float).apply(lambda x: self.dmTodd(x))
         self.fixLongitude = fixGGA.loc[:, '4'].astype(float).apply(lambda x: self.dmTodd(x))
-        self.fixAltitude = self.altitude + fixGGA.loc[:, '11'].apply(lambda x: self.tofloat(x))
+        self.fixAltitude = fixGGA.loc[:, '9'].apply(lambda x: self.tofloat(x)) + fixGGA.loc[:, '11'].apply(
+            lambda x: self.tofloat(x))
         self.fixState = fixGGA.loc[:, '6'].astype(int)
 
     def tofloat(self, x):
@@ -111,6 +112,9 @@ class GNGGAFrame:
         fixList = self.get_state()
         for i in range(len(fixList)):
             if fixList[i] == 4:
+                return [self.get_latitude()[i], self.get_longitude()[i], self.get_altitude()[i]]
+        for i in range(len(fixList)):
+            if fixList[i] > 0:
                 return [self.get_latitude()[i], self.get_longitude()[i], self.get_altitude()[i]]
         return [40.06410906, 116.2281654, 54]
 

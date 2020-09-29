@@ -35,7 +35,7 @@ class AnalysisTool:
     # 获取当前文件夹下的所有log文件
     def read_file(self):
         for file in os.listdir(self._dir):
-            if file.endswith('log'):
+            if file.endswith(('log', "txt", 'nmea')):
                 self._dataFiles.append(file)
                 self.fileList.append(file)
         return self.fileList
@@ -44,10 +44,11 @@ class AnalysisTool:
         records = []
         for fileName in self.fileList:
             self._ggaEntity.clear()
-            if ".log" not in fileName:
+            if ".log" not in fileName and 'txt' not in fileName and 'nmea' not in fileName:
                 continue
             portName = fileName
-            dirPath = os.path.join(self._dir, fileName.split('.log')[0])
+            endtag = "." + fileName.split('.')[-1]
+            dirPath = os.path.join(self._dir, fileName.split(endtag)[0])
             if os.path.exists(dirPath) is False:
                 os.mkdir(dirPath)
 
@@ -63,7 +64,7 @@ class AnalysisTool:
                 we put 20 names because it's Feyman-0183 Data, each line has different num with step ','
             """
             # print(self._dir + '/' + fileName)
-            fileName = dirPath + '.log'
+            fileName = dirPath + endtag
             self.fmiChar = FmiChart(path=dirPath)
             df = pd.read_table(fileName, sep=',',
                                encoding=get_encoding(fileName),
@@ -89,6 +90,8 @@ class AnalysisTool:
                              self.localTime)
             self._ggaEntity.append(gga)
             maxNum = len(gga.get_altitude())
+            if maxNum == 0:
+                continue
             fixNum = len(gga.get_altitude(True))
 
             self.drawPic(testPower)
