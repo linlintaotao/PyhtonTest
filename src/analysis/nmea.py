@@ -8,6 +8,7 @@ class GNGGAFrame:
     def __init__(self, name, data, localTime, hz=1):
         self._name = name.split('-')[0]
         self._time = localTime
+        print(self._time)
         self.hz = hz
         self._gga = None
         self.latitude = None
@@ -27,9 +28,9 @@ class GNGGAFrame:
         :return:
         """
         strData = str(date).split('.')
-        timeToInt = float(strData[0])
-        if self.parse_time is None:
-            self.parse_time = timeToInt
+        # timeToInt = float(strData[0])
+        # if self.parse_time == 0:
+        #     self.parse_time = timeToInt
 
         while len(strData[0]) < 6:
             strData[0] = '0' + strData[0]
@@ -40,11 +41,14 @@ class GNGGAFrame:
             time += timedelta(seconds=1)
             time = time.replace(microsecond=0)
 
-        if self.parse_time > timeToInt:
+        if time.hour == 0 and time.minute == 0 and time.second == 0:
             self._time += timedelta(days=1)
+        # if self.parse_time > timeToInt:
+        #     self._time += timedelta(days=1)
 
-        self.parse_time = timeToInt
+        # self.parse_time = timeToInt
         result = time.replace(year=self._time.year, month=self._time.month, day=self._time.day)
+        print(result)
         return result
 
     def parseData(self, data):

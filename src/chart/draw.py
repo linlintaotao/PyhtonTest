@@ -200,7 +200,6 @@ class FmiChart:
             xMin = timeMin if (timeMin < xMin) | (xMin == 0) else xMin
 
             ''' 画点 （x= 时间,y= NEU上的误差，c = color）'''
-
             anx_u.scatter(data.index, data.values, c=colors, marker='.')
 
         if xMin == xMax:
@@ -232,6 +231,7 @@ class FmiChart:
         anx_e.set_ylabel(' E error / m')
         anx_u.set_ylabel(' U error / m')
 
+        print(datetime.utcfromtimestamp(xMin), datetime.utcfromtimestamp(xMax))
         anx_u.set_xlim(datetime.utcfromtimestamp(xMin), datetime.utcfromtimestamp(xMax))
         anx_u.set_xlabel('local time(dd-hh-mm)')
         plt.savefig(self._savePath + '/NEU' + ('_FIX' if onlyFix else '_All') + '.png')
