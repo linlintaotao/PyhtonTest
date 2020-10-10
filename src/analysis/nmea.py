@@ -48,7 +48,6 @@ class GNGGAFrame:
 
         # self.parse_time = timeToInt
         result = time.replace(year=self._time.year, month=self._time.month, day=self._time.day)
-        print(result)
         return result
 
     def parseData(self, data):
