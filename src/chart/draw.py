@@ -104,11 +104,11 @@ class FmiChart:
 
         '''画点'''
         ax.scatter(list(map(lambda x: xCenter - x, xPos)), list(map(lambda y: y - yCenter, yPos)), marker='1', c=color)
-        if testPower:
-            # 添加文字,第一个参数是x轴坐标，第二个参数是y轴坐标，以数据的刻度为基准
-            plt.text(1, 1, '%d < 0.02m' % errorIn2cm, fontdict={'size': '12', 'color': 'r'})
-            plt.text(1, 0.9, '%d < 0.05m' % errorIn5cm, fontdict={'size': '12', 'color': 'r'})
-            plt.text(1, 0.8, '%d > 0.05m' % errorCount, fontdict={'size': '12', 'color': 'r'})
+        # if testPower:
+        #     # 添加文字,第一个参数是x轴坐标，第二个参数是y轴坐标，以数据的刻度为基准
+        #     plt.text(1, 1, '%d < 0.02m' % errorIn2cm, fontdict={'size': '12', 'color': 'r'})
+        #     plt.text(1, 0.9, '%d < 0.05m' % errorIn5cm, fontdict={'size': '12', 'color': 'r'})
+        #     plt.text(1, 0.8, '%d > 0.05m' % errorCount, fontdict={'size': '12', 'color': 'r'})
         ax.set_xlim(-axis, axis)
         ax.set_ylim(-axis, axis)
         plt.xlabel(r'points x (m)')
@@ -231,7 +231,7 @@ class FmiChart:
         anx_e.set_ylabel(' E error / m')
         anx_u.set_ylabel(' U error / m')
 
-        print(datetime.utcfromtimestamp(xMin), datetime.utcfromtimestamp(xMax))
+        # print(datetime.utcfromtimestamp(xMin), datetime.utcfromtimestamp(xMax))
         anx_u.set_xlim(datetime.utcfromtimestamp(xMin), datetime.utcfromtimestamp(xMax))
         anx_u.set_xlabel('local time(dd-hh-mm)')
         plt.savefig(self._savePath + '/NEU' + ('_FIX' if onlyFix else '_All') + '.png')
@@ -269,20 +269,26 @@ class FmiChart:
 
     def drawFixUseTime(self, name, licenceNum, timeStrList):
         fig, ax = plt.subplots(figsize=(12, 8))
-        plt.title(f'fixed use Time(s) since power on')
+        plt.title(f' fixed use Time(s) ')
         useTimeList = []
         lastTime = -1
+        useTimeTotal = 0
         for strTime in timeStrList:
             strTime = float(strTime)
             timeSeconds = (strTime // 10000) * 3600 + ((strTime % 10000) // 100) * 60 + strTime % 100
             fixedTime = abs(timeSeconds - lastTime)
             if fixedTime >= 80000:
                 fixedTime = abs(timeSeconds + 86400 - lastTime)
-            useTimeList.append(abs(fixedTime) if lastTime != -1 else 0)
+            useTime = abs(fixedTime) if lastTime != -1 else 0
+            useTimeTotal += useTime
+            useTimeList.append(useTime)
             lastTime = timeSeconds
 
             if fixedTime > 3000:
                 print(strTime)
+        if len(useTimeList) > 0:
+            print("useTime = ",useTimeTotal / len(useTimeList))
+        plt.xticks(np.arange(0, len(useTimeList), step=1))
         plt.plot(list(range(len(useTimeList))), useTimeList)
         ax.set_ylabel('use time (s)')
         fig.savefig(self._savePath + f'/{name}_testPower.png')

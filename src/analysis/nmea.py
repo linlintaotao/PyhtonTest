@@ -28,9 +28,6 @@ class GNGGAFrame:
         :return:
         """
         strData = str(date).split('.')
-        # timeToInt = float(strData[0])
-        # if self.parse_time == 0:
-        #     self.parse_time = timeToInt
 
         while len(strData[0]) < 6:
             strData[0] = '0' + strData[0]
@@ -40,13 +37,11 @@ class GNGGAFrame:
         if (time.microsecond / 1000) > 900:
             time += timedelta(seconds=1)
             time = time.replace(microsecond=0)
+        elif time.microsecond / 1000 < 100:
+            time = time.replace(microsecond=0)
 
-        if time.hour == 0 and time.minute == 0 and time.second == 0:
+        if time.hour == 0 and time.minute == 0 and time.second == 0 and time.microsecond == 0:
             self._time += timedelta(days=1)
-        # if self.parse_time > timeToInt:
-        #     self._time += timedelta(days=1)
-
-        # self.parse_time = timeToInt
         result = time.replace(year=self._time.year, month=self._time.month, day=self._time.day)
         return result
 
