@@ -47,18 +47,23 @@ class WordReporter:
         doc.add_paragraph('基站: Obs 20C')
 
         if self._records is not None:
-            table = doc.add_table(rows=1, cols=4)
+            table = doc.add_table(rows=1, cols=6)
             hdr_cells = table.rows[0].cells
             hdr_cells[0].text = '串口号'
             hdr_cells[1].text = 'SwVersion'
-            hdr_cells[2].text = '固定总数' if self._testPower is not True else 'lisence次数'
-            hdr_cells[3].text = '固定率' if self._testPower is not True else '固定次数'
-            for COM, version, fixNum, percent in self._records:
+            hdr_cells[2].text = 'navi_rate'
+            hdr_cells[3].text = 'work_mode'
+            hdr_cells[4].text = '总数' if self._testPower is not True else 'lisence次数'
+            hdr_cells[5].text = '固定率' if self._testPower is not True else '固定次数'
+
+            for COM, version, fixNum, percent, naviRate, workMode in self._records:
                 row_cells = table.add_row().cells
                 row_cells[0].text = COM
                 row_cells[1].text = version
-                row_cells[2].text = fixNum
-                row_cells[3].text = percent
+                row_cells[2].text = naviRate
+                row_cells[3].text = workMode
+                row_cells[4].text = fixNum
+                row_cells[5].text = percent
 
         doc.add_heading('测试结果图例', level=1)
         self.addPng(doc)

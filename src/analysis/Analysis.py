@@ -44,7 +44,7 @@ class AnalysisTool:
         records = []
         for fileName in self.fileList:
             self._ggaEntity.clear()
-            if ".log" not in fileName and 'txt' not in fileName and 'nmea' not in fileName:
+            if not fileName.endswith(('log', "txt", 'nmea')):
                 continue
             portName = fileName
             endtag = "." + fileName.split('.')[-1]
@@ -55,7 +55,7 @@ class AnalysisTool:
             """
                 记录设备信息 固件版本 和开始时间
             """
-            startTime, swVersion, testTimes, fixedUseTimeList = self.readConfig(fileName, testPower)
+            startTime, swVersion, testTimes, fixedUseTimeList, naviRate, workMode = self.readConfig(fileName, testPower)
 
             self.localTime = datetime.now().date() if len(startTime) <= 0 \
                 else datetime.strptime(startTime, "%Y%m%d_%H%M%S")
@@ -100,7 +100,8 @@ class AnalysisTool:
                 records.append((portName.split('_')[0], swVersion, str(testTimes), str(len(fixedUseTimeList))))
                 self.drawFixUseTime(dirPath, portName.split('_')[0], testTimes, fixedUseTimeList)
             else:
-                records.append((portName.split('_')[0], swVersion, str(maxNum), str(round(fixNum * 100 / maxNum, 2))))
+                records.append((portName.split('_')[0], swVersion, str(maxNum), str(round(fixNum * 100 / maxNum, 2)),
+                                naviRate, workMode))
 
             self.drawLine()
 
@@ -122,7 +123,9 @@ class AnalysisTool:
         path = self._dir + '/' + fileName
         readLimit = 0
         fixed = False
+        navi_rate = ''
         fixUseTimeList = []
+        work_mode = ''
         with open(file=path, errors='ignore') as rf:
             for line in rf.readlines():
                 readLimit += 1
@@ -133,10 +136,18 @@ class AnalysisTool:
 
                 if len(swVersion) <= 0:
                     if 'Version' in line:
-                        swVersion = line.split(':')[-1]
+                        swVersion = line.split('Version:')[-1]
+
+                if len(navi_rate) <= 0:
+                    if 'Navi Rate' in line:
+                        navi_rate = line.split(':')[-1]
+
+                if len(work_mode) <= 0:
+                    if 'Work Mode' in line:
+                        work_mode = line.split(':')[-1]
 
                 if testPower is True:
-                    if "+++ license activated" in line:
+                    if "+++ license" in line:
                         testTimes += 1
                     elif ("E,4" in line) and ("GNGGA" in line):
                         if not fixed:
@@ -147,7 +158,7 @@ class AnalysisTool:
                     continue
                 if readLimit > 60:
                     break
-        return startTime, swVersion, testTimes, fixUseTimeList
+        return startTime, swVersion, testTimes, fixUseTimeList, navi_rate, work_mode
 
     def drawPic(self, testPower=False):
 
