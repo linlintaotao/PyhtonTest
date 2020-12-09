@@ -55,7 +55,8 @@ class AnalysisTool:
             """
                 记录设备信息 固件版本 和开始时间
             """
-            startTime, swVersion, testTimes, fixedUseTimeList, naviRate, workMode = self.readConfig(fileName, testPower)
+            startTime, swVersion, testTimes, fixedUseTimeList, naviRate, workMode, heartBeatLost, rtkDiff = self.readConfig(
+                fileName, testPower)
 
             self.localTime = datetime.now().date() if len(startTime) <= 0 \
                 else datetime.strptime(startTime, "%Y%m%d_%H%M%S")
@@ -101,7 +102,7 @@ class AnalysisTool:
                 self.drawFixUseTime(dirPath, portName.split('_')[0], testTimes, fixedUseTimeList)
             else:
                 records.append((portName.split('_')[0], swVersion, str(maxNum), str(round(fixNum * 100 / maxNum, 2)),
-                                naviRate, workMode))
+                                naviRate, workMode, heartBeatLost, rtkDiff))
 
             self.drawLine()
 
@@ -121,14 +122,15 @@ class AnalysisTool:
         swVersion = ''
         testTimes = 0
         path = self._dir + '/' + fileName
-        readLimit = 0
         fixed = False
         navi_rate = ''
         fixUseTimeList = []
         work_mode = ''
+        heartBeatLostTimes = 0
+        rtkDiff = ''
         with open(file=path, errors='ignore') as rf:
             for line in rf.readlines():
-                readLimit += 1
+                # readLimit += 1
 
                 if len(startTime) <= 0 and ("StartTime" in line):
                     startTime = line.split('=')[-1].replace('\n', '')
@@ -146,6 +148,13 @@ class AnalysisTool:
                     if 'Work Mode' in line:
                         work_mode = line.split(':')[-1]
 
+                if 'HeartBeat' in line:
+                    heartBeatLostTimes += 1
+
+                if len(rtkDiff) <= 0:
+                    if 'Rtk Diff' in line:
+                        rtkDiff = line.split(':')[-1]
+
                 if testPower is True:
                     if "+++ license" in line:
                         testTimes += 1
@@ -156,9 +165,8 @@ class AnalysisTool:
                     elif "GNGGA" in line:
                         fixed = False
                     continue
-                if readLimit > 60:
-                    break
-        return startTime, swVersion, testTimes, fixUseTimeList, navi_rate, work_mode
+
+        return startTime, swVersion, testTimes, fixUseTimeList, navi_rate, work_mode, heartBeatLostTimes, rtkDiff
 
     def drawPic(self, testPower=False):
 

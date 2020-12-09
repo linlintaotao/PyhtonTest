@@ -121,20 +121,28 @@ class FmiChart:
 
     def drawLineChart(self, dataframe):
         fig, ax = plt.subplots(figsize=[12, 8])
-        ax2 = plt.subplot(212)
+
+        ax3 = plt.subplot(313)
+        for data in dataframe:
+            data.getdAge().plot(label=data.get_name())
+        ax3.set_ylabel('dAge', fontsize=10)
+        ax3.set_xlabel('local time', fontsize=10)
+
+        ax2 = plt.subplot(312)
         for data in dataframe:
             data.get_sateNum().plot(label=data.get_name())
         ax2.set_ylabel('SateNum', fontsize=10)
-        ax2.set_xlabel('local time', fontsize=10)
+        # ax2.set_xlabel('local time', fontsize=10)
 
-        ax1 = plt.subplot(211, sharex=ax2)
+        ax1 = plt.subplot(311, sharex=ax2)
         for data in dataframe:
             data.get_state().plot(label=data.get_name(), fontsize=9)
-        fig.text(0.75, 0.25, WATERMARK, fontsize=35, color='gray', ha='right', va='bottom', alpha=0.2, rotation=30)
-
-        plt.title(r'FixState and sateNums')
         ax1.set_ylabel('FixState', fontsize=10)
         ax1.set_ylim(0, 7)
+
+        fig.text(0.75, 0.25, WATERMARK, fontsize=35, color='gray', ha='right', va='bottom', alpha=0.2, rotation=30)
+
+        plt.title(r'FixState & sateNums & dAge')
         plt.grid(True, ls=':', c='lightgray')
         plt.savefig(self._savePath + '/bsateNumAndFixSate.png')
         plt.close(fig)
@@ -287,7 +295,7 @@ class FmiChart:
             if fixedTime > 3000:
                 print(strTime)
         if len(useTimeList) > 0:
-            print("useTime = ",useTimeTotal / len(useTimeList))
+            print("useTime = ", useTimeTotal / len(useTimeList))
         plt.xticks(np.arange(0, len(useTimeList), step=1))
         plt.plot(list(range(len(useTimeList))), useTimeList)
         ax.set_ylabel('use time (s)')

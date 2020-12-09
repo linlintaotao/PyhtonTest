@@ -1,7 +1,9 @@
 # coding= utf-8
 
 from docx import Document
-from docx.shared import Inches
+from docx.shared import Inches, Pt
+from docx.enum.table import WD_TABLE_ALIGNMENT
+from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
 import os
 
 
@@ -45,25 +47,47 @@ class WordReporter:
         doc.add_heading('日常静态测试', 0)
         doc.add_paragraph('测试报告生成时间：%s' % self._time)
         doc.add_paragraph('基站: Obs 20C')
-
+        table = None
         if self._records is not None:
-            table = doc.add_table(rows=1, cols=6)
+            table = doc.add_table(rows=1, cols=7, style="Light Grid Accent 1")
+            table.style.paragraph_format.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+            table.style.font.size = Pt(10)
             hdr_cells = table.rows[0].cells
             hdr_cells[0].text = '串口号'
-            hdr_cells[1].text = 'SwVersion'
-            hdr_cells[2].text = 'navi_rate'
-            hdr_cells[3].text = 'work_mode'
-            hdr_cells[4].text = '总数' if self._testPower is not True else 'lisence次数'
-            hdr_cells[5].text = '固定率' if self._testPower is not True else '固定次数'
+            # hdr_cells[1].text = 'SW'
+            hdr_cells[1].text = 'NaviRate'
+            hdr_cells[2].text = 'WorkMode'
+            hdr_cells[3].text = 'RtkDiff'
+            hdr_cells[4].text = 'HeartBeat'
+            hdr_cells[5].text = '总数' if self._testPower is not True else 'lisence次数'
+            hdr_cells[6].text = '固定率' if self._testPower is not True else '固定次数'
 
-            for COM, version, fixNum, percent, naviRate, workMode in self._records:
+            for COM, version, fixNum, percent, naviRate, workMode, heartBeatTimes, rtkDiff in self._records:
                 row_cells = table.add_row().cells
                 row_cells[0].text = COM
+                # row_cells[1].text = version
+                row_cells[1].text = naviRate
+                row_cells[2].text = workMode
+                row_cells[3].text = rtkDiff
+                row_cells[4].text = str(heartBeatTimes)
+                row_cells[5].text = fixNum
+                row_cells[6].text = percent
+
+        if self._records is not None and table is not None:
+            hdr_cells = table.add_row().cells
+            hdr_cells[0].text = '/'
+            for i in range(len(hdr_cells)):
+                if i > 1:
+                    hdr_cells[1].merge(hdr_cells[i])
+            hdr_cells[1].text = '设备串口对应版本'
+
+            for COM, version, fixNum, percent, naviRate, workMode, heartBeatTimes, rtkDiff in self._records:
+                row_cells = table.add_row().cells
+                row_cells[0].text = COM
+                for i in range(len(row_cells)):
+                    if i > 1:
+                        row_cells[1].merge(row_cells[i])
                 row_cells[1].text = version
-                row_cells[2].text = naviRate
-                row_cells[3].text = workMode
-                row_cells[4].text = fixNum
-                row_cells[5].text = percent
 
         doc.add_heading('测试结果图例', level=1)
         self.addPng(doc)

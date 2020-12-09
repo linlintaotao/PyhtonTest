@@ -57,6 +57,7 @@ class GNGGAFrame:
         self.longitude = self._gga.loc[:, '4'].astype(float).apply(lambda x: self.dmTodd(x))
         self.state = self._gga.loc[:, '6'].apply(lambda x: self.toint(x))
         self.satNum = self._gga.loc[:, '7'].apply(lambda x: self.tofloat(x))
+        self.dAge = self._gga.loc[:, '13'].apply(lambda x: self.tofloat(x))
         self.altitude = self._gga.loc[:, '9'].apply(lambda x: self.tofloat(x))
 
         fixGGA = self._gga.loc[self._gga['6'].astype(int) == 4, :]
@@ -85,6 +86,9 @@ class GNGGAFrame:
 
     def get_sateNum(self):
         return self.satNum
+
+    def getdAge(self):
+        return self.dAge
 
     def get_state(self, onlyFix=False):
         if onlyFix:
