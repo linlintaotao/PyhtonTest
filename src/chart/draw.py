@@ -6,6 +6,7 @@ import matplotlib.patches as pacthes
 from datetime import datetime
 from src.analysis import Gauss
 import math
+import pandas as pd
 
 accuracyItems = [0.01, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 100, 1000]
 WATERMARK = "By FMI Tech"
@@ -167,27 +168,26 @@ class FmiChart:
                 pass
 
     def drawSingleCdf(self, dataFram, name, pointTruth=None, onlyFix=False):
-        n_diffList, e_diffList, u_diffList, fixList, hz_diffList = [], [], [], [], []
         if pointTruth is None:
             pointTruth = dataFram.getPointTruth()
 
-        n_diff = dataFram.get_latitude(onlyFix=onlyFix).apply(lambda x: (x - pointTruth[0]) * D2R * radius)
-        e_diff = dataFram.get_longitude(onlyFix=onlyFix).apply(lambda x:
-                                                               (x - pointTruth[1]) * D2R * radius *
-                                                               np.cos(pointTruth[0] * D2R))
-        u_diff = dataFram.get_altitude(onlyFix=onlyFix).apply(lambda x: x - pointTruth[2])
+        n_diff = dataFram.get_latitude(onlyFix=onlyFix) \
+            .apply(lambda x: (x - pointTruth[0]) * D2R * radius)
+        e_diff = dataFram.get_longitude(onlyFix=onlyFix) \
+            .apply(lambda x: (x - pointTruth[1]) * D2R * radius * np.cos(pointTruth[0] * D2R))
+        u_diff = dataFram.get_altitude(onlyFix=onlyFix) \
+            .apply(lambda x: x - pointTruth[2])
 
         if onlyFix & (len(n_diff) <= 0 | len(e_diff) <= 0 | len(u_diff) <= 0):
             return
 
-        n_diffList.append(n_diff)
-        e_diffList.append(e_diff)
-        u_diffList.append(u_diff)
-        hz_diffList.append(np.sqrt(n_diff[:] ** 2 + e_diff[:] ** 2))
-        fixList.append(dataFram.get_state(onlyFix=onlyFix).values)
-
-        self.drawNEU(n_diffList, e_diffList, u_diffList, fixList, name, onlyFix=onlyFix)
-        self.drawHorizontal(hz_diffList, name, TITLES[3])
+        hz_diff = np.sqrt(n_diff[:] ** 2 + e_diff[:] ** 2)
+        fixList = dataFram.get_state(onlyFix=onlyFix).values
+        self.drawNEU(n_diff, e_diff, u_diff, fixList, name, onlyFix=onlyFix)
+        self.drawHorizontal(hz_diff, name, TITLES[3])
+        if onlyFix:
+            return hz_diff.describe(percentiles=[.68, .95, .997])
+        return None
 
     def drawNEU(self, n_diff, e_diff, u_diff, fixList, name, onlyFix=False):
 
@@ -195,42 +195,41 @@ class FmiChart:
         anx_u = plt.subplot(313)
         xMax, xMin = 0, 0
 
-        for i in range(len(u_diff)):
-            data = u_diff[i]
-            # 获取每个点的解状态
-            colors = list(map(lambda c: self._fixColor[c.astype(int)], fixList[i]))
-            """ 获取采集的数据在x轴上的范围 来为不同状态的点加上特定的颜色"""
-            indexList = list(map(lambda a: a.timestamp(), data.index))
-            timeMax = max(indexList)
-            timeMin = min(indexList)
+        # for i in range(len(u_diff)):
+        # data = u_diff
+        # 获取每个点的解状态
+        colors = list(map(lambda c: self._fixColor[c.astype(int)], fixList))
+        """ 获取采集的数据在x轴上的范围 来为不同状态的点加上特定的颜色"""
+        indexList = list(map(lambda a: a.timestamp(), u_diff.index))
+        timeMax = max(indexList)
+        timeMin = min(indexList)
 
-            xMax = timeMax if timeMax > xMax else xMax
-            xMin = timeMin if (timeMin < xMin) | (xMin == 0) else xMin
+        xMax = timeMax if timeMax > xMax else xMax
+        xMin = timeMin if (timeMin < xMin) | (xMin == 0) else xMin
 
-            ''' 画点 （x= 时间,y= NEU上的误差，c = color）'''
-            anx_u.scatter(data.index, data.values, c=colors, marker='.')
+        ''' 画点 （x= 时间,y= NEU上的误差，c = color）'''
+        anx_u.scatter(u_diff.index, u_diff.values, c=colors, marker='.')
 
         if xMin == xMax:
             return
 
         anx_e = plt.subplot(312, sharex=anx_u)
         anx_n = plt.subplot(311, sharex=anx_u)
-        for i in range(len(n_diff)):
-            data = n_diff[i]
+        # for i in range(len(n_diff)):
+        #     data = n_diff[i]
 
-            # 获取每个点的解状态
-            colors = list(map(lambda c: self._fixColor[c.astype(int)], fixList[i]))
-            ''' 画点 （x= 时间,y= NEU上的误差，c = color）'''
-            anx_n.scatter(data.index, data.values, c=colors, marker='.')
-            # data.plot(label=FILE_NAME_PREFIX[num + 1] + ' ' + dir, lw=0.3)
+        # 获取每个点的解状态
+        # colors = list(map(lambda c: self._fixColor[c.astype(int)], fixList[i]))
+        # data.plot(label=FILE_NAME_PREFIX[num + 1] + ' ' + dir, lw=0.3)
+        ''' 画点 （x= 时间,y= NEU上的误差，c = color）'''
+        anx_n.scatter(n_diff.index, n_diff.values, c=colors, marker='.')
+        # for i in range(len(e_diff)):
+        #     data = e_diff[i]
 
-        for i in range(len(e_diff)):
-            data = e_diff[i]
-
-            # 获取每个点的解状态
-            colors = list(map(lambda c: self._fixColor[c.astype(int)], fixList[i]))
-            ''' 画点 （x= 时间,y= NEU上的误差，c = color）'''
-            anx_e.scatter(data.index, data.values, c=colors, marker='.')
+        # 获取每个点的解状态
+        # colors = list(map(lambda c: self._fixColor[c.astype(int)], fixList[i]))
+        ''' 画点 （x= 时间,y= NEU上的误差，c = color）'''
+        anx_e.scatter(e_diff.index, e_diff.values, c=colors, marker='.')
 
         fig.text(0.75, 0.25, WATERMARK, fontsize=35, color='gray', ha='right', va='bottom', alpha=0.2, rotation=30)
 
@@ -249,9 +248,9 @@ class FmiChart:
         fig, axh = plt.subplots(figsize=(12, 8))
         axh.set_title(title)
 
-        for i in range(len(hzData)):
-            hzData[i].hist(cumulative=True, density=True, bins=400, histtype='step', linewidth=2.0,
-                           label=nameList[i])
+        # for i in range(len(hzData)):
+        hzData.hist(cumulative=True, density=True, bins=400, histtype='step', linewidth=2.0,
+                    label=nameList)
         plt.axhline(y=.95, color='b', linestyle='-.', lw=0.6, label='95% line')
         plt.axhline(y=.68, color='b', linestyle='-.', lw=0.6, label='68% line')
         fig.text(0.75, 0.25, WATERMARK, fontsize=35, color='gray', ha='right', va='center', alpha=0.2, rotation=30)

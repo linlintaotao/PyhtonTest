@@ -14,12 +14,9 @@ powerTest = False
 
 
 def startAnalysis():
-    try:
-        analysis = AnalysisTool(dir=os.path.join(os.path.abspath('.'), "data"))
-        analysis.read_file()
-        analysis.analysis(testPower=powerTest)
-    except Exception as e:
-        print(e)
+    analysis = AnalysisTool(dir=os.path.join(os.path.abspath('.'), "data"))
+    analysis.read_file()
+    analysis.analysis(testPower=powerTest)
     buildReport()
     print('Test is Finished success')
 

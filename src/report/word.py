@@ -15,6 +15,7 @@ class WordReporter:
         self._pic = []
         self._records = None
         self._testPower = False
+        self._cepResult = None
 
     # 获取当前文件夹下的所有png文件
     @staticmethod
@@ -29,6 +30,9 @@ class WordReporter:
     def setRecords(self, records, testPower):
         self._records = records
         self._testPower = testPower
+
+    def setCepResult(self, cepResult):
+        self._cepResult = cepResult
 
     def addPng(self, doc):
         listfile = os.listdir(self._path)
@@ -54,7 +58,6 @@ class WordReporter:
             table.style.font.size = Pt(10)
             hdr_cells = table.rows[0].cells
             hdr_cells[0].text = '串口号'
-            # hdr_cells[1].text = 'SW'
             hdr_cells[1].text = 'NaviRate'
             hdr_cells[2].text = 'WorkMode'
             hdr_cells[3].text = 'RtkDiff'
@@ -65,7 +68,6 @@ class WordReporter:
             for COM, version, fixNum, percent, naviRate, workMode, heartBeatTimes, rtkDiff in self._records:
                 row_cells = table.add_row().cells
                 row_cells[0].text = COM
-                # row_cells[1].text = version
                 row_cells[1].text = naviRate
                 row_cells[2].text = workMode
                 row_cells[3].text = rtkDiff
@@ -88,6 +90,36 @@ class WordReporter:
                     if i > 1:
                         row_cells[1].merge(row_cells[i])
                 row_cells[1].text = version
+
+        if self._cepResult is not None:
+            cep_cells = table.add_row().cells
+            cep_cells[0].text = 'Result'
+            cep_cells[1].text = 'mean'
+            cep_cells[2].text = 'std'
+            cep_cells[3].text = '68%'
+            cep_cells[4].text = '95%'
+            cep_cells[5].text = '99.7%'
+            cep_cells[6].text = 'max'
+            for name, cepInfo in self._cepResult:
+                if cepInfo is None:
+                    continue
+                cep_cells = table.add_row().cells
+                cep_cells[0].text = name
+                i = 0
+                for row in cepInfo.iteritems():
+                    if i == 1:
+                        cep_cells[1].text = str(f'%.3f' % row[1])
+                    elif i == 2:
+                        cep_cells[2].text = str(f'%.3f' % row[1])
+                    elif i == 5:
+                        cep_cells[3].text = str(f'%.3f' % row[1])
+                    elif i == 6:
+                        cep_cells[4].text = str(f'%.3f' % row[1])
+                    elif i == 7:
+                        cep_cells[5].text = str(f'%.3f' % row[1])
+                    elif i == 8:
+                        cep_cells[6].text = str(f'%.3f' % row[1])
+                    i += 1
 
         doc.add_heading('测试结果图例', level=1)
         self.addPng(doc)

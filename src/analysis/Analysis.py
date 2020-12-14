@@ -42,6 +42,7 @@ class AnalysisTool:
 
     def analysis(self, testPower=False):
         records = []
+        cepResultList = []
         for fileName in self.fileList:
             self._ggaEntity.clear()
             if not fileName.endswith(('log', "txt", 'nmea')):
@@ -95,8 +96,9 @@ class AnalysisTool:
                 continue
             fixNum = len(gga.get_altitude(True))
 
-            self.drawPic(testPower)
+            cepInfo = self.drawPic(testPower)
 
+            cepResultList.append((portName.split('_')[0], cepInfo))
             if testPower:
                 records.append((portName.split('_')[0], swVersion, str(testTimes), str(len(fixedUseTimeList))))
                 self.drawFixUseTime(dirPath, portName.split('_')[0], testTimes, fixedUseTimeList)
@@ -111,6 +113,7 @@ class AnalysisTool:
         report = WordReporter(self._dir,
                               time.strftime('%Y%m%d_%H%M%S', time.localtime(time.time())))
         report.setRecords(records, testPower)
+        report.setCepResult(cepResultList)
         report.build()
 
     def analysisGSV(self):
@@ -169,24 +172,27 @@ class AnalysisTool:
         return startTime, swVersion, testTimes, fixUseTimeList, navi_rate, work_mode, heartBeatLostTimes, rtkDiff
 
     def drawPic(self, testPower=False):
-
+        cepInfo = None
         for data in self._ggaEntity:
             xList, yList, xFixList, yFixList, fixList = data.get_scatter()
             if len(xFixList) != 0:
                 self.fmiChar.drawScatter('ScatterFix', xFixList, yFixList, testPower=testPower)
-            # if testPower:
-            #     continue
+
             self.fmiChar.drawScatter('ScatterAll', xList, yList, fixList)
+            self.fmiChar.drawSingleCdf(data, data.get_name(), pointTruth=None)
+            cepInfo = self.fmiChar.drawSingleCdf(data, data.get_name(), pointTruth=None, onlyFix=True)
+            print(cepInfo)
+        return cepInfo
 
     def drawLine(self, gsv=None):
         self.fmiChar.drawLineChart(self._ggaEntity)
-        self.fmiChar.drawCdf(self._ggaEntity, singlePoint=True)
-
+        # self.fmiChar.drawCdf(self._ggaEntity, singlePoint=True)
+        # self.fmiChar.drawSingleCdf()
         if gsv is not None:
             self.fmiChar.drawSateCn0(gsv.get_name(), gsv.get_satellites_status())
 
         # ''' draw only Fix'''
-        self.fmiChar.drawCdf(self._ggaEntity, singlePoint=True, onlyFix=True)
+        # self.fmiChar.drawCdf(self._ggaEntity, singlePoint=True, onlyFix=True)
 
     def drawFixUseTime(self, dirPath, name, fixedTimes, fixTimeUseList):
         self.fmiChar.drawFixUseTime(name=name, licenceNum=fixedTimes, timeStrList=fixTimeUseList)
