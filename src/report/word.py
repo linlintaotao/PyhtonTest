@@ -93,7 +93,7 @@ class WordReporter:
 
         if self._cepResult is not None:
             cep_cells = table.add_row().cells
-            cep_cells[0].text = 'Result'
+            cep_cells[0].text = 'Result（m）'
             cep_cells[1].text = 'mean'
             cep_cells[2].text = 'std'
             cep_cells[3].text = '68%'
