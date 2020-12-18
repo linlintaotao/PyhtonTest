@@ -61,7 +61,7 @@ class WordReporter:
             hdr_cells[1].text = 'NaviRate'
             hdr_cells[2].text = 'WorkMode'
             hdr_cells[3].text = 'RtkDiff'
-            hdr_cells[4].text = 'HeartBeat'
+            hdr_cells[4].text = '设备状态'
             hdr_cells[5].text = '总数' if self._testPower is not True else 'lisence次数'
             hdr_cells[6].text = '固定率' if self._testPower is not True else '固定次数'
 
@@ -93,7 +93,7 @@ class WordReporter:
 
         if self._cepResult is not None:
             cep_cells = table.add_row().cells
-            cep_cells[0].text = 'Result（m）'
+            cep_cells[0].text = 'Result(m)'
             cep_cells[1].text = 'mean'
             cep_cells[2].text = 'std'
             cep_cells[3].text = '68%'
