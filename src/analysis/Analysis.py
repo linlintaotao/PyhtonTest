@@ -56,7 +56,7 @@ class AnalysisTool:
             """
                 记录设备信息 固件版本 和开始时间
             """
-            startTime, swVersion, testTimes, fixedUseTimeList, naviRate, workMode, status, rtkDiff = self.readConfig(
+            startTime, swVersion, testTimes, fixedUseTimeList, naviRate, workMode, status, rtkDiff, GPIMU = self.readConfig(
                 fileName, testPower)
 
             self.localTime = datetime.now().date() if len(startTime) <= 0 \
@@ -104,7 +104,7 @@ class AnalysisTool:
                 self.drawFixUseTime(dirPath, portName.split('_')[0], testTimes, fixedUseTimeList)
             else:
                 records.append((portName.split('_')[0], swVersion, str(maxNum), str(round(fixNum * 100 / maxNum, 2)),
-                                naviRate, workMode, status, rtkDiff))
+                                naviRate, workMode, status, rtkDiff, GPIMU))
 
             self.drawLine()
 
@@ -131,12 +131,12 @@ class AnalysisTool:
         work_mode = ''
         heartBeat = False
         rtkDiff = ''
-        hasGPIMU = False
+        GPIMUTIMES = 0
         timeDelay = False
         with open(file=path, errors='ignore') as rf:
             for line in rf.readlines():
                 if "GPIMU" in line:
-                    hasGPIMU = True
+                    GPIMUTIMES += 1
 
                 if len(startTime) <= 0 and ("StartTime" in line):
                     startTime = line.split('=')[-1].replace('\n', '')
@@ -175,8 +175,8 @@ class AnalysisTool:
                         fixed = False
                     continue
 
-        status = heartBeat and timeDelay and hasGPIMU
-        return startTime, swVersion, testTimes, fixUseTimeList, navi_rate, work_mode, status, rtkDiff
+        status = heartBeat and timeDelay
+        return startTime, swVersion, testTimes, fixUseTimeList, navi_rate, work_mode, status, rtkDiff, GPIMUTIMES
 
     def drawPic(self, testPower=False):
         cepInfo = None

@@ -62,17 +62,17 @@ class WordReporter:
             hdr_cells[2].text = 'WorkMode'
             hdr_cells[3].text = 'RtkDiff'
             hdr_cells[4].text = '设备状态'
-            hdr_cells[5].text = '总数' if self._testPower is not True else 'lisence次数'
+            hdr_cells[5].text = '总数/IMU' if self._testPower is not True else 'lisence次数'
             hdr_cells[6].text = '固定率' if self._testPower is not True else '固定次数'
 
-            for COM, version, fixNum, percent, naviRate, workMode, heartBeatTimes, rtkDiff in self._records:
+            for COM, version, fixNum, percent, naviRate, workMode, status, rtkDiff, GPIMU, in self._records:
                 row_cells = table.add_row().cells
                 row_cells[0].text = COM
                 row_cells[1].text = naviRate
                 row_cells[2].text = workMode
                 row_cells[3].text = rtkDiff
-                row_cells[4].text = str(heartBeatTimes)
-                row_cells[5].text = fixNum
+                row_cells[4].text = str(status)
+                row_cells[5].text = f'%s/%d' % (fixNum, GPIMU)
                 row_cells[6].text = percent
 
         if self._records is not None and table is not None:
@@ -83,7 +83,7 @@ class WordReporter:
                     hdr_cells[1].merge(hdr_cells[i])
             hdr_cells[1].text = '设备串口对应版本'
 
-            for COM, version, fixNum, percent, naviRate, workMode, heartBeatTimes, rtkDiff in self._records:
+            for COM, version, fixNum, percent, naviRate, workMode, status, rtkDiff, GPIMU in self._records:
                 row_cells = table.add_row().cells
                 row_cells[0].text = COM
                 for i in range(len(row_cells)):
