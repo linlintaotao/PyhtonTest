@@ -12,7 +12,7 @@ from threading import Thread
 
 mSerial = None
 
-powerSerial = 'COM48'
+powerSerial = '/dev/cu.usbserial-14230'
 fixedSerialList = []
 
 switchOff = True
@@ -156,9 +156,6 @@ class Manager:
 
 if __name__ == '__main__':
     # mSerial = serial.Serial(powerSerial, 9600)
-    dirPath = os.path.join(os.path.abspath('.'), "data")
-    if os.path.exists(dirPath) is False:
-        os.mkdir(dirPath)
-    manager = Manager().instance(dir=dirPath)
+    manager = Manager().instance()
     timeStr = time.strftime('%Y%m%d_%H%M%S', time.localtime(time.time()))
     manager.start(powerTest=True)

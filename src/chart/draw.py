@@ -65,29 +65,10 @@ class FmiChart:
         fig, ax = plt.subplots(figsize=[10, 8])
 
         ''' 根据解状态匹配对应的颜色 '''
-        textInfo = ''
-        errorIn2cm, errorIn5cm = 0, 0
-        errorCount = 0
+
         if fixList is None:
             color = 'green'
-            # accuracyItem = 0.02
-            for i in range(len(xPos)):
-                a = abs(xPos[i] - xCenter)
-                b = abs(yPos[i] - yCenter)
-
-                error = math.sqrt(a ** 2 + b ** 2)
-                if error < 0.02:
-                    errorIn2cm += 1
-                elif error < 0.05:
-                    errorIn5cm += 1
-            textInfo = format("Fixed Info: error<0.02m  %.1f%% ; 0.02<error<0.05m  %.1f%%" % (
-                round(errorIn2cm * 100 / len(xPos), 1),
-                round(errorIn5cm * 100 / len(xPos), 1)))
-            errorCount = len(xPos) - errorIn2cm - errorIn5cm
-            print('errorIn2cm count: %d, errorIn5cm count: %d' % (errorIn2cm, errorIn5cm))
-
             textInfo = 'Scatter FIXED'
-
         else:
             color = list(map(lambda c: self._fixColor[c.astype(int)], fixList))
             textInfo = 'Scatter All'
@@ -105,11 +86,7 @@ class FmiChart:
 
         '''画点'''
         ax.scatter(list(map(lambda x: xCenter - x, xPos)), list(map(lambda y: y - yCenter, yPos)), marker='1', c=color)
-        # if testPower:
-        #     # 添加文字,第一个参数是x轴坐标，第二个参数是y轴坐标，以数据的刻度为基准
-        #     plt.text(1, 1, '%d < 0.02m' % errorIn2cm, fontdict={'size': '12', 'color': 'r'})
-        #     plt.text(1, 0.9, '%d < 0.05m' % errorIn5cm, fontdict={'size': '12', 'color': 'r'})
-        #     plt.text(1, 0.8, '%d > 0.05m' % errorCount, fontdict={'size': '12', 'color': 'r'})
+
         ax.set_xlim(-axis, axis)
         ax.set_ylim(-axis, axis)
         plt.xlabel(r'points x (m)')
@@ -133,7 +110,6 @@ class FmiChart:
         for data in dataframe:
             data.get_sateNum().plot(label=data.get_name())
         ax2.set_ylabel('SateNum', fontsize=10)
-        # ax2.set_xlabel('local time', fontsize=10)
 
         ax1 = plt.subplot(311, sharex=ax2)
         for data in dataframe:
@@ -150,22 +126,45 @@ class FmiChart:
 
     # pointTruth [latitude,longitude,altitude]
     # dataTruth
-    def drawCdf(self, dataFrameList, dataTruth=None, dataFrame=None, pointTruth=None, singlePoint=False, onlyFix=False):
+    def drawCdf(self, dataFrameList, dataTruth=None, singlePoint=False, pointTruth=None, onlyFix=False):
         nameList = []
-        if dataFrame is not None:
-            name = dataFrame.get_name().split('/')[-1]
-            nameList.append(name + '_Fix_' if onlyFix else '_')
-            self.drawSingleCdf(dataFrame, nameList, pointTruth=pointTruth, onlyFix=onlyFix)
-            return
 
-        for dataFram in dataFrameList:
-            nameList.append(dataFram.get_name())
-            if singlePoint:
+        if singlePoint:
+            for dataFram in dataFrameList:
                 self.drawSingleCdf(dataFram, dataFram.get_name(), pointTruth=pointTruth, onlyFix=onlyFix)
-                continue
-            else:
-                # todo 跟另一个数据对比
-                pass
+        else:
+
+            fig, ax = plt.subplots(4, 1, sharex=True, figsize=(12, 8))
+            for dataFram in dataFrameList:
+                nameList.append(dataFram.get_name())
+                dtN = pd.merge(dataTruth.get_latitude(), dataFram.get_latitude(), left_index=True, right_index=True,
+                               how='outer')
+                dtN = dtN.dropna()
+                dtNorthDiff = (dtN['2_y'] - dtN['2_x']) * D2R * radius
+                ax[0].plot(dtNorthDiff.index, dtNorthDiff.values, lw=1, label=dataFram.get_name())
+                ax[0].legend(fontsize='small', ncol=1)
+                dtE = pd.merge(dataTruth.get_longitude(), dataFram.get_longitude(), left_index=True, right_index=True,
+                               how='outer')
+                dtE = dtE.dropna()
+                dtEarthDiff = (dtE['4_y'] - dtE['4_x']) * D2R * radius * np.cos(dtE['4_x'] * D2R)
+                ax[1].plot(dtEarthDiff, lw=1, label=dataFram.get_name())
+
+                dtU = pd.merge(dataTruth.get_altitude(), dataFram.get_altitude(), left_index=True, right_index=True,
+                               how='outer')
+                dtU = dtU.dropna()
+                dtU = dtU['9_y'] - dtU['9_x']
+                ax[2].plot(dtU, lw=1)
+                hzDiff = np.sqrt(dtNorthDiff[:] ** 2 + dtEarthDiff[:] ** 2)
+                ax[3].plot(hzDiff, lw=1)
+            indexList = list(map(lambda a: a.timestamp(), dataTruth.get_latitude().index))
+            ax[3].set_xlim(datetime.utcfromtimestamp(min(indexList)), datetime.utcfromtimestamp(max(indexList)))
+            ax[3].set_xlabel('local time(dd-hh-mm)')
+            ax[3].set_ylabel('H error /m', fontsize='small')
+            ax[2].set_ylabel('U error /m', fontsize='small')
+            ax[1].set_ylabel('E error /m', fontsize='small')
+            ax[0].set_ylabel('N error /m', fontsize='small')
+            ax[0].set_title(f'Postprocess Vs {dataTruth.get_name()} in NEUH /m ', fontsize='small')
+            plt.show()
 
     def drawSingleCdf(self, dataFram, name, pointTruth=None, onlyFix=False):
         if pointTruth is None:
@@ -189,14 +188,15 @@ class FmiChart:
             return hz_diff.describe(percentiles=[.68, .95, .997])
         return None
 
-    def drawNEU(self, n_diff, e_diff, u_diff, fixList, name, onlyFix=False):
+    def drawHorizontalLineWithTruth(self, data, truth):
+
+        pass
+
+    def drawNEU(self, n_diff, e_diff, u_diff, fixList, name=None, onlyFix=False):
 
         fig, ax = plt.subplots(figsize=(16, 10))
         anx_u = plt.subplot(313)
         xMax, xMin = 0, 0
-
-        # for i in range(len(u_diff)):
-        # data = u_diff
         # 获取每个点的解状态
         colors = list(map(lambda c: self._fixColor[c.astype(int)], fixList))
         """ 获取采集的数据在x轴上的范围 来为不同状态的点加上特定的颜色"""
@@ -215,19 +215,10 @@ class FmiChart:
 
         anx_e = plt.subplot(312, sharex=anx_u)
         anx_n = plt.subplot(311, sharex=anx_u)
-        # for i in range(len(n_diff)):
-        #     data = n_diff[i]
 
-        # 获取每个点的解状态
-        # colors = list(map(lambda c: self._fixColor[c.astype(int)], fixList[i]))
-        # data.plot(label=FILE_NAME_PREFIX[num + 1] + ' ' + dir, lw=0.3)
         ''' 画点 （x= 时间,y= NEU上的误差，c = color）'''
         anx_n.scatter(n_diff.index, n_diff.values, c=colors, marker='.')
-        # for i in range(len(e_diff)):
-        #     data = e_diff[i]
 
-        # 获取每个点的解状态
-        # colors = list(map(lambda c: self._fixColor[c.astype(int)], fixList[i]))
         ''' 画点 （x= 时间,y= NEU上的误差，c = color）'''
         anx_e.scatter(e_diff.index, e_diff.values, c=colors, marker='.')
 
@@ -238,7 +229,6 @@ class FmiChart:
         anx_e.set_ylabel(' E error / m')
         anx_u.set_ylabel(' U error / m')
 
-        # print(datetime.utcfromtimestamp(xMin), datetime.utcfromtimestamp(xMax))
         anx_u.set_xlim(datetime.utcfromtimestamp(xMin), datetime.utcfromtimestamp(xMax))
         anx_u.set_xlabel('local time(dd-hh-mm)')
         plt.savefig(self._savePath + '/NEU' + ('_FIX' if onlyFix else '_All') + '.png')
@@ -248,7 +238,6 @@ class FmiChart:
         fig, axh = plt.subplots(figsize=(12, 8))
         axh.set_title(title)
 
-        # for i in range(len(hzData)):
         hzData.hist(cumulative=True, density=True, bins=400, histtype='step', linewidth=2.0,
                     label=nameList)
         plt.axhline(y=.95, color='b', linestyle='-.', lw=0.6, label='95% line')
@@ -291,8 +280,6 @@ class FmiChart:
             useTimeList.append(useTime)
             lastTime = timeSeconds
 
-            if fixedTime > 3000:
-                print(strTime)
         if len(useTimeList) > 0:
             print("useTime = ", useTimeTotal / len(useTimeList))
         plt.xticks(np.arange(0, len(useTimeList), step=1))

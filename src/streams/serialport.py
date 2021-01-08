@@ -6,6 +6,18 @@ import serial.tools.list_ports
 import time
 
 maxCount = 30
+list = ["AT+NAVI_RATE=5\r\n",
+        "AT+IMU_ANGLE=180,0,0\r\n",
+        "AT+LEVEL_ARM=0.3,-1,2.2\r\n",
+        "AT+GPGGA=UART1,5\r\n",
+        "AT+GPRMC=UART1,5\r\n",
+        "AT+WORK_MODE=13\r\n",
+        "AT+DR_TIME=0\r\n",
+        "AT+ALIGN_VEL=3\r\n",
+        "AT+RTK_DIFF=5\r\n",
+        "AT+SAVE_ALL\r\n",
+        "AT+WARM_RESET\r\n"
+        ]
 
 
 class SerialPort:
@@ -61,10 +73,10 @@ class SerialPort:
 
     def send_data(self, data):
         if self._entity.is_open:
-            # print("send data = %s" % str(data))
             if type(data) is str:
                 data = data.encode()
             self._entity.write(data)
+            print("send data", data)
 
     def read_data(self):
         try:
@@ -76,19 +88,20 @@ class SerialPort:
         if self.checkedSupportFmi:
             if (b"\r\n" in data) or (b'$VERSION' in data):
                 self.checkedSupportFmi = False
-                self.supportListener(self._port)
+                if self.supportListener is not None:
+                    self.supportListener(self._port)
 
         if len(data) <= 0:
             return None
         if self._showLog is True:
-            # print(str(data))
+            print(str(data))
             if self.callback is not None:
                 self.autoTest(data)
-            # if self.WarmResetTest and b'E,4' in data:
-            #     self.warmStart()
+            if self.WarmResetTest and b'$VERSION' in data:
+                self.warmStart()
+                self.WarmResetTest = False
         if self._file:
-            if b'[' not in data or b']' not in data:
-                self._file.write(data)
+            self._file.write(data)
 
     def notify(self, data):
         try:
@@ -114,7 +127,7 @@ class SerialPort:
         strData = str(data)
         if '+++ license activated' in strData:
             self.connectTimes = 0
-            self.fixCount = 5
+            self.fixCount = 60
             self.zeroCount = 0
 
         elif ('GNGGA' in strData) & ('E,0' in strData):
@@ -123,7 +136,8 @@ class SerialPort:
                 self._file.write("zero >200 Restart")
                 self.reset()
 
-        elif 'E,4' in strData:
+        elif 'E,1' in strData:
+            self.WarmResetTest = True
             self.connectTimes += 1
             if self.connectTimes > self.fixCount:
                 self.reset()
@@ -135,10 +149,14 @@ class SerialPort:
         self.callback(self._port)
 
     def warmStart(self):
-        self.connectTimes += 1
-        if self.connectTimes > 10:
-            self.send_data('AT+WARM_RESET\r\n')
-            timeNow = time.strftime('%H:%M:%S', time.localtime(time.time()))
-            self.sendTimes += 1
-            self._file.write("Warm Restart Time= %s : %d\r\n" % (timeNow, self.sendTimes))
-            self.connectTimes = 0
+        # self.connectTimes += 1
+        # if self.connectTimes > 10:
+        #     self.send_data('AT+WARM_RESET\r\n')
+        #     timeNow = time.strftime('%H:%M:%S', time.localtime(time.time()))
+        #     self.sendTimes += 1
+        #     self._file.write("Warm Restart Time= %s : %d\r\n" % (timeNow, self.sendTimes))
+        #     self.connectTimes = 0
+        # for data in list:
+        #     self._entity.write(data.encode())
+        #     time.sleep(0.1)
+        pass

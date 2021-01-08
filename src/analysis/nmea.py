@@ -8,7 +8,6 @@ class GNGGAFrame:
     def __init__(self, name, data, localTime, hz=1):
         self._name = name.split('-')[0]
         self._time = localTime
-        print(self._time)
         self.hz = hz
         self._gga = None
         self.latitude = None
