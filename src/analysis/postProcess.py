@@ -1,24 +1,30 @@
 # coding= utf-8
+from src.chart.draw import FmiChart
+
 
 class PostProcess:
 
     def __init__(self, truthPath, ppPath):
         self.truthPath = truthPath
         self.ppPath = ppPath
-        self.analysisDataList = list()
+        self.postProcessDataList = list()
+        self.truthDataList = list()
 
     def preparePostProcessData(self):
         for file in os.listdir(self.ppPath):
             if file.endswith(('log', "txt", 'nmea')):
-                self.analysisDataList.append(file)
+                self.postProcessDataList.append(file)
 
     def prepareTruthData(self):
-
-        pass
+        for file in os.listdir(self.ppPath):
+            if file.endswith(('log', "txt", 'nmea')):
+                self.truthDataList.append(file)
 
     def analysis(self):
-
-        pass
+        for index in range(len(self.truthDataList)):
+            # if  self.truthDataList[index]
+            # fmiChart = FmiChart(None, )
+            pass
 
     def makeReport(self):
 

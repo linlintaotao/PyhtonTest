@@ -6,9 +6,10 @@ import os
 from threading import Timer
 
 COM1 = "/dev/cu.usbserial-14230"
-COM2 = "/dev/cu.usbserial-14220"
+COM2 = "/dev/cu.usbserial-14210"
 serialPortPower = None
 serialPortP20 = None
+
 list = ["AT+NAVI_RATE=5\r\n",
         "AT+IMU_ANGLE=180,0,0\r\n",
         "AT+LEVEL_ARM=0.3,-1,2.2\r\n",
@@ -19,8 +20,7 @@ list = ["AT+NAVI_RATE=5\r\n",
         "AT+ALIGN_VEL=3\r\n",
         "AT+RTK_DIFF=5\r\n",
         "AT+SAVE_ALL\r\n",
-        "AT+WARM_RESET\r\n"
-        ]
+        "AT+WARM_RESET\r\n"]
 
 
 def power(port):
@@ -30,7 +30,7 @@ def power(port):
     serialPortPower.write(bytes.fromhex("A0 01 00 A1"))
 
 
-def support(port):
+def support():
     for data in list:
         serialPortP20.send_data(data)
         time.sleep(0.1)
@@ -50,7 +50,7 @@ if __name__ == '__main__':
     serialPortP20.setFile(file, time.strftime('%Y%m%d_%H%M%S', time.localtime(time.time())))
     serialPortP20.setCallback(power)
     serialPortP20.start()
-    power("")
+    power('')
     scheduler = Timer(60 * 60 * 18, stop)
     scheduler.start()
     scheduler.join()
