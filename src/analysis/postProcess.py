@@ -75,9 +75,10 @@ class NMEAFrame:
 
 class PostProcess:
 
-    def __init__(self, truthPath, ppPath):
+    def __init__(self, truthPath, ppPath, savePath):
         self.truthPath = truthPath
         self.ppPath = ppPath
+        self.savePath = savePath
         self.postProcessDataList = list()
         self.truthDataList = list()
         self.localTime = datetime.now().date()
@@ -151,11 +152,13 @@ class PostProcess:
         return gga
 
     def makeReport(self):
-        reporter = PPReporter(self.ppPath, time=datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+        reporter = PPReporter(self.ppPath, time=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                              savePath=self.savePath)
         reporter.build()
 
 
 if __name__ == '__main__':
     os.path.abspath('../../data/truth')
-    pp = PostProcess(truthPath=os.path.abspath('../../data/truth'), ppPath=os.path.abspath('../../data/PP'))
+    pp = PostProcess(truthPath=os.path.abspath('../../data/truth'), ppPath=os.path.abspath('../../data/PP'),
+                     savePath="")
     pp.startAnalysis()

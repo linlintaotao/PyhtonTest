@@ -7,9 +7,10 @@ import os
 
 class PPReporter:
 
-    def __init__(self, ppPath, time):
+    def __init__(self, ppPath, time, savePath=None):
         self.ppPath = ppPath
         self.time = time
+        self.savePath = savePath
 
     def createTable(self):
         return
@@ -33,7 +34,7 @@ class PPReporter:
         doc.add_paragraph('测试报告生成时间：%s' % self.time)
 
         self.addPng(doc)
-        doc.save(self.ppPath + os.sep + 'ppResult.docx')
+        doc.save(self.savePath + '/ppResult.docx')
 
 
 if __name__ == '__main__':
