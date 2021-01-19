@@ -6,7 +6,8 @@ from src.analysis import Gauss
 class GNGGAFrame:
 
     def __init__(self, name, data, localTime, hz=1):
-        self._name = name.split('-')[0]
+        # self._name = name.split('-')[0]
+        self._name = name
         self._time = localTime
         self.hz = hz
         self._gga = None

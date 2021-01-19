@@ -12,7 +12,7 @@ from src.observer.publish import Publisher
 class NtripClient(Publisher):
 
     def __init__(self, ip='ntrips.feymani.cn', port=2102, user='feyman-user', password="123456", mountPoint='',
-                 latitude=40, longitude=116, altitude=54.6):
+                 latitude=40.0, longitude=116.0, altitude=54.6):
         Publisher.__init__(self)
         '''
         parameters
@@ -78,7 +78,7 @@ class NtripClient(Publisher):
 
     def getGGAString(self):
         now = datetime.datetime.utcnow()
-        ggaString = "GPGGA,%02d%02d%04.2f,%02d%011.8f,%1s,%03d%011.8f,%1s,1,05,0.19,+00400,M,%5.3f,M,," % \
+        ggaString = "GPGGA,%02d%02d%04.2f,%02d%011.8f,%1s,%03d%011.8f,%1s,1,05,0.19,0,M,%5.3f,M,," % \
                     (now.hour, now.minute, now.second, self.latDeg, self.latMin, self.flagN, self.lonDeg, self.lonMin,
                      self.flagE, self._height)
         checksum = self.check_sum(ggaString)
@@ -108,7 +108,7 @@ class NtripClient(Publisher):
 
             if self.read_thread is not None:
                 self.read_thread = None
-            self.read_thread = Thread(target=self.receive_data,daemon=True)
+            self.read_thread = Thread(target=self.receive_data, daemon=True)
             self.read_thread.start()
             self._socket.send(self.set_mount_info(self._mountPoint))
             self._socket.send(self.getGGAString())
@@ -157,13 +157,14 @@ class NtripClient(Publisher):
             self._reconnectLimit += 1
             if (self._reconnectLimit > 5) | self._reconnect is True:
                 self.reconnect()
-            sleep(5)
+            sleep(10)
+            self._socket.send(self.getGGAString())
 
     def start_check(self):
 
         if self.check_thread is not None:
             self.check_thread = None
-        self.check_thread = Thread(target=self.check,daemon=True)
+        self.check_thread = Thread(target=self.check, daemon=True)
         self.check_thread.start()
 
 

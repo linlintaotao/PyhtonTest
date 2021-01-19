@@ -40,11 +40,11 @@ class WordReporter:
         for fileName in listfile:
             dirName = os.path.join(self._path, fileName)
             if os.path.isdir(dirName):
-                doc.add_paragraph('%s 图例' % fileName, style='Intense Quote')
+                doc.add_paragraph('%s 图例>>>' % fileName, style='Intense Quote')
                 pictures = self.read_file(dirName)
                 for picture in pictures:
                     doc.add_picture(dirName + '/' + picture, Inches(6), Inches(4))
-                doc.add_paragraph('%s 图例' % fileName, style='Intense Quote')
+                doc.add_paragraph('<<<%s 图例' % fileName, style='Intense Quote')
 
     def build(self):
         doc = Document()

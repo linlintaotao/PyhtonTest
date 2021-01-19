@@ -201,39 +201,39 @@ class AnalysisTool:
 
 
 if __name__ == '__main__':
-    # analysisTool = AnalysisTool()
-    # analysisTool.read_file()
-    # analysisTool.analysis(testPower=False)
-
-    dirPath = "../../data"
-    ggaList = []
-    for file in os.listdir(dirPath):
-        if file.endswith(('log', "txt", 'nmea')):
-            path = os.path.join(dirPath, file)
-            # print(os.path.join(dirPath, file))
-            df = pd.read_table(path, sep=',',
-                               encoding=get_encoding(path),
-                               header=None,
-                               names=['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
-                                      '11', '12', '13', '14', '15', '16', '17', '18', '19', '20'],
-                               error_bad_lines=False,
-                               low_memory=False
-                               )
-
-            # dirPath = file.split('.log')[0]
-            # if os.path.exists(dirPath) is False:
-            #     os.mkdir(dirPath)
-
-            # 删除异常数据
-            df = df.drop(index=df.loc[(df['1'].isna())].index)
-            df = df.drop(index=df.loc[(df['6'].isna())].index)
-            df = df.drop(index=df.loc[(df['6'].astype(str) == '0')].index)
-
-            gga = GNGGAFrame(file.split('.')[0],
-                             df.loc[(df['0'].astype(str) == '$GNGGA') | (df['0'].astype(str) == '$GPGGA')].copy(),
-                             datetime.now().date())
-            ggaList.append(gga)
-
-    fmiChar = FmiChart(path=dirPath)
-    print(ggaList[0].get_name())
-    fmiChar.drawCdf(ggaList[1:], ggaList[0])
+    analysisTool = AnalysisTool(dir=os.path.abspath('../..') + "/data/nmea")
+    analysisTool.read_file()
+    analysisTool.analysis(testPower=False)
+    #
+    # dirPath = "../../data"
+    # ggaList = []
+    # for file in os.listdir(dirPath):
+    #     if file.endswith(('log', "txt", 'nmea')):
+    #         path = os.path.join(dirPath, file)
+    #         # print(os.path.join(dirPath, file))
+    #         df = pd.read_table(path, sep=',',
+    #                            encoding=get_encoding(path),
+    #                            header=None,
+    #                            names=['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10',
+    #                                   '11', '12', '13', '14', '15', '16', '17', '18', '19', '20'],
+    #                            error_bad_lines=False,
+    #                            low_memory=False
+    #                            )
+    #
+    #         # dirPath = file.split('.log')[0]
+    #         # if os.path.exists(dirPath) is False:
+    #         #     os.mkdir(dirPath)
+    #
+    #         # 删除异常数据
+    #         df = df.drop(index=df.loc[(df['1'].isna())].index)
+    #         df = df.drop(index=df.loc[(df['6'].isna())].index)
+    #         df = df.drop(index=df.loc[(df['6'].astype(str) == '0')].index)
+    #
+    #         gga = GNGGAFrame(file.split('.')[0],
+    #                          df.loc[(df['0'].astype(str) == '$GNGGA') | (df['0'].astype(str) == '$GPGGA')].copy(),
+    #                          datetime.now().date())
+    #         ggaList.append(gga)
+    #
+    # fmiChar = FmiChart(path=dirPath)
+    # print(ggaList[0].get_name())
+    # fmiChar.drawCdf(ggaList[1:], ggaList[0])

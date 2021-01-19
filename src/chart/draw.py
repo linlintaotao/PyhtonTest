@@ -164,6 +164,7 @@ class FmiChart:
             ax[1].set_ylabel('E error /m', fontsize='small')
             ax[0].set_ylabel('N error /m', fontsize='small')
             ax[0].set_title(f'Postprocess Vs {dataTruth.get_name()} in NEUH /m ', fontsize='small')
+            plt.savefig(self._savePath + '/PP-Result.png')
             plt.show()
 
     def drawSingleCdf(self, dataFram, name, pointTruth=None, onlyFix=False):
