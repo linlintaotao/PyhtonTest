@@ -124,7 +124,8 @@ class PostProcess:
         # 画图分析结果
         for data in self.nmeaFrameList:
             fmiChart = FmiChart(path=os.path.join(self.ppPath, data.getKey()))
-            fmiChart.drawCdf(data.getPPFrameList(), data.getTruthFrame())
+            if len(data.getPPFrameList()) > 0:
+                fmiChart.drawCdf(data.getPPFrameList(), data.getTruthFrame())
 
         self.makeReport()
 
