@@ -121,14 +121,15 @@ class PostProcess:
                         ppPath = os.path.join(self.ppPath, key, ppName)
                         dataFrame.appendPPFrame(self.readNmeaFile(ppPath))
                     break
-
+        hzErrorInfo = []
         # 画图分析结果
         for data in self.nmeaFrameList:
             fmiChart = FmiChart(path=os.path.join(self.ppPath, data.getKey()))
             if len(data.getPPFrameList()) > 0:
-                fmiChart.drawCdf(data.getPPFrameList(), data.getTruthFrame())
+                hzErrorInfo += fmiChart.drawCdf(data.getPPFrameList(), data.getTruthFrame())
 
-        self.makeReport()
+        # 固定解、浮点解占比
+        self.makeReport(hzErrorInfo)
 
     def readNmeaFile(self, filePath):
         df = pd.read_table(filePath, sep=',',
@@ -151,14 +152,14 @@ class PostProcess:
                          self.localTime)
         return gga
 
-    def makeReport(self):
+    def makeReport(self, tableInfo):
         reporter = PPReporter(self.ppPath, time=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                               savePath=self.savePath)
-        reporter.build()
+        reporter.build(tableInfo)
 
 
 if __name__ == '__main__':
     os.path.abspath('../../data/truth')
     pp = PostProcess(truthPath=os.path.abspath('../../data/truth'), ppPath=os.path.abspath('../../data/PP'),
-                     savePath="")
+                     savePath=os.path.abspath('../../data'))
     pp.startAnalysis()

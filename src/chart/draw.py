@@ -127,7 +127,8 @@ class FmiChart:
     # pointTruth [latitude,longitude,altitude]
     # dataTruth
     def drawCdf(self, dataFrameList, dataTruth=None, singlePoint=False, pointTruth=None, onlyFix=False):
-        nameList = []
+
+        cdfInfoList = []
 
         if singlePoint:
             for dataFram in dataFrameList:
@@ -136,7 +137,6 @@ class FmiChart:
 
             fig, ax = plt.subplots(4, 1, sharex=True, figsize=(12, 8))
             for dataFram in dataFrameList:
-                nameList.append(dataFram.get_name())
                 dtN = pd.merge(dataTruth.get_latitude(), dataFram.get_latitude(), left_index=True, right_index=True,
                                how='outer')
                 dtN = dtN.dropna()
@@ -156,6 +156,10 @@ class FmiChart:
                 ax[2].plot(dtU, lw=1)
                 hzDiff = np.sqrt(dtNorthDiff[:] ** 2 + dtEarthDiff[:] ** 2)
                 ax[3].plot(hzDiff, lw=1)
+                cdfInfo = hzDiff.describe(percentiles=[.68, .95, .997])
+                cdfInfoList.append((dataFram.get_name(), cdfInfo))
+                print(cdfInfo)
+
             indexList = list(map(lambda a: a.timestamp(), dataTruth.get_latitude().index))
             ax[3].set_xlim(datetime.utcfromtimestamp(min(indexList)), datetime.utcfromtimestamp(max(indexList)))
             ax[3].set_xlabel('local time(dd-hh-mm)')
@@ -164,8 +168,9 @@ class FmiChart:
             ax[1].set_ylabel('E error /m', fontsize='small')
             ax[0].set_ylabel('N error /m', fontsize='small')
             ax[0].set_title(f'Postprocess Vs {dataTruth.get_name()} in NEUH /m ', fontsize='small')
-            plt.savefig(self._savePath + '/PP-Result.png')
-            plt.show()
+            plt.savefig(self._savePath + '/PP_Result.png')
+            return cdfInfoList
+            # plt.show()
 
     def drawSingleCdf(self, dataFram, name, pointTruth=None, onlyFix=False):
         if pointTruth is None:
