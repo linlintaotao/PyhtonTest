@@ -3,6 +3,7 @@ from datetime import timedelta, datetime
 from src.analysis import Gauss
 
 
+# noinspection PyBroadException
 class GNGGAFrame:
 
     def __init__(self, name, data, localTime, hz=1):
@@ -67,19 +68,25 @@ class GNGGAFrame:
             lambda x: self.tofloat(x))
         self.fixState = fixGGA.loc[:, '6'].astype(int)
 
-    def tofloat(self, x):
+    def getFixPercent(self):
+        return 100 * len(self.fixState) / len(self._gga)
+
+    @staticmethod
+    def tofloat(x):
         try:
             return float(x)
         except Exception as e:
             return 0
 
-    def toint(self, x):
+    @staticmethod
+    def toint(x):
         try:
             return int(x)
         except Exception as e:
             return 0
 
-    def dmTodd(self, dm):
+    @staticmethod
+    def dmTodd(dm):
         dd = int(dm / 100)
         res = dd + (dm % 100) / 60
         return res

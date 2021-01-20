@@ -156,9 +156,10 @@ class FmiChart:
                 ax[2].plot(dtU, lw=1)
                 hzDiff = np.sqrt(dtNorthDiff[:] ** 2 + dtEarthDiff[:] ** 2)
                 ax[3].plot(hzDiff, lw=1)
-                cdfInfo = hzDiff.describe(percentiles=[.68, .95, .997])
+                fixPercent = pd.Series([dataFram.getFixPercent()], index=['FixPercent'])
+                cdfInfo = hzDiff.describe(percentiles=[.68, .95, .997]).append(fixPercent)
+                print(type(cdfInfo))
                 cdfInfoList.append((dataFram.get_name(), cdfInfo))
-                print(cdfInfo)
 
             indexList = list(map(lambda a: a.timestamp(), dataTruth.get_latitude().index))
             ax[3].set_xlim(datetime.utcfromtimestamp(min(indexList)), datetime.utcfromtimestamp(max(indexList)))

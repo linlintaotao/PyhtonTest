@@ -15,7 +15,7 @@ class PPReporter:
     def createTable(self, doc, tableInfo):
         if tableInfo is None or len(tableInfo) <= 0:
             return
-        table = doc.add_table(rows=1, cols=7, style="Light Grid Accent 1")
+        table = doc.add_table(rows=1, cols=8, style="Light Grid Accent 1")
         table.style.paragraph_format.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
         table.style.font.size = Pt(10)
         hdr_cells = table.rows[0].cells
@@ -26,6 +26,7 @@ class PPReporter:
         hdr_cells[4].text = '95%'
         hdr_cells[5].text = '99.7%'
         hdr_cells[6].text = 'max'
+        hdr_cells[7].text = 'fixed'
 
         for name, cellInfo in tableInfo:
             cep_cell = table.add_row().cells
@@ -44,6 +45,8 @@ class PPReporter:
                     cep_cell[5].text = str(f'%.3f' % row[1])
                 elif i == 8:
                     cep_cell[6].text = str(f'%.3f' % row[1])
+                elif i == 9:
+                    cep_cell[7].text = str(f'%.2f%%' % row[1])
                 i += 1
 
     def addPng(self, doc):
