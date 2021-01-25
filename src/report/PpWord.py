@@ -12,7 +12,8 @@ class PPReporter:
         self.time = time
         self.savePath = savePath
 
-    def createTable(self, doc, tableInfo):
+    @staticmethod
+    def createTable(doc, tableInfo):
         if tableInfo is None or len(tableInfo) <= 0:
             return
         table = doc.add_table(rows=1, cols=8, style="Light Grid Accent 1")

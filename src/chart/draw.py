@@ -137,10 +137,14 @@ class FmiChart:
 
             fig, ax = plt.subplots(4, 1, sharex=True, figsize=(12, 8))
             for dataFram in dataFrameList:
+                print(dataTruth.get_latitude()[0:50])
+                print(dataFram.get_latitude()[0:50])
                 dtN = pd.merge(dataTruth.get_latitude(), dataFram.get_latitude(), left_index=True, right_index=True,
                                how='outer')
                 dtN = dtN.dropna()
+                print(dtN[0:50])
                 dtNorthDiff = (dtN['2_y'] - dtN['2_x']) * D2R * radius
+                print(dtNorthDiff[0:50])
                 ax[0].plot(dtNorthDiff.index, dtNorthDiff.values, lw=1, label=dataFram.get_name())
                 ax[0].legend(fontsize='small', ncol=1)
                 dtE = pd.merge(dataTruth.get_longitude(), dataFram.get_longitude(), left_index=True, right_index=True,

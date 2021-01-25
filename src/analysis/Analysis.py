@@ -66,7 +66,6 @@ class AnalysisTool:
             """
                 we put 20 names because it's Feyman-0183 Data, each line has different num with step ','
             """
-            # print(self._dir + '/' + fileName)
             fileName = dirPath + endtag
             self.fmiChar = FmiChart(path=dirPath)
             df = pd.read_table(fileName, sep=',',
@@ -98,7 +97,6 @@ class AnalysisTool:
             fixNum = len(gga.get_altitude(True))
 
             cepInfo = self.drawPic(testPower)
-
             cepResultList.append((portName.split('_')[0], cepInfo))
             if testPower:
                 records.append((portName.split('_')[0], swVersion, str(testTimes), str(len(fixedUseTimeList))))
