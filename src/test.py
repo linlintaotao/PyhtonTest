@@ -44,8 +44,11 @@ if __name__ == '__main__':
     serialPortP20.start()
     ntrip.start()
     ntrip.register(serialPortP20)
-
-    scheduler = Timer(60 * 60 * 28, stop)
-    scheduler.start()
-    scheduler.join()
+    try:
+        scheduler = Timer(60 * 60 * 28, stop)
+        scheduler.start()
+        scheduler.join()
+    except Exception:
+        serialPortP20.close_serial()
+        ntrip.stop()
     stop()
