@@ -23,6 +23,7 @@ class SerialPort:
         self.state = 0
         self.warmRestLimit = 100
         self.warmResetInterval = 0
+        self.logTime = None
 
     def setCallback(self, callback):
         self.callback = callback
