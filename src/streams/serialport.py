@@ -5,20 +5,6 @@ from threading import Thread
 import serial.tools.list_ports
 import time
 
-maxCount = 30
-list = ["AT+NAVI_RATE=5\r\n",
-        "AT+IMU_ANGLE=180,0,0\r\n",
-        "AT+LEVEL_ARM=0.3,-1,2.2\r\n",
-        "AT+GPGGA=UART1,5\r\n",
-        "AT+GPRMC=UART1,5\r\n",
-        "AT+WORK_MODE=13\r\n",
-        "AT+DR_TIME=0\r\n",
-        "AT+ALIGN_VEL=3\r\n",
-        "AT+RTK_DIFF=5\r\n",
-        "AT+SAVE_ALL\r\n",
-        "AT+WARM_RESET\r\n"
-        ]
-
 
 class SerialPort:
     def __init__(self, iport, fileWriter=None, baudRate=115200, showLog=False):
@@ -29,18 +15,21 @@ class SerialPort:
         self._read_thread = None
         self._entity = None
         self._file = fileWriter
-        self.connectTimes = 0
-        self.sendTimes = 0
-        self.serialDemo = []
         self.callback = None
-        self.fixCount = maxCount
         self.supportListener = None
         self.checkedSupportFmi = True
         self.isRunning = True
-        self.WarmResetTest = True
+        self.cycleTime = time.time()
+        self.state = 0
+        self.warmRestLimit = 100
+        self.warmResetInterval = 0
 
     def setCallback(self, callback):
         self.callback = callback
+
+    def logStateTime(self, logTime, warmResetInterval=0):
+        self.logTime = logTime
+        self.warmResetInterval = warmResetInterval
 
     def setSupportFmi(self, supportListener):
         self.supportListener = supportListener
@@ -61,7 +50,7 @@ class SerialPort:
     def open_serial(self):
         try:
             self._entity = serial.Serial(self._port, self._baudRate, timeout=3)
-        except:
+        except Exception:
             raise IOError(f'can not open serial{self._port}:{self._baudRate}')
 
     def close_serial(self):
@@ -93,13 +82,12 @@ class SerialPort:
 
         if len(data) <= 0:
             return None
-        if self._showLog is True:
-            print(str(data))
-            if self.callback is not None:
-                self.autoTest(data)
-            if self.WarmResetTest and b'$VERSION' in data:
-                self.warmStart()
-                self.WarmResetTest = False
+        # if self._showLog is True:
+        #     if self.callback is not None:
+        #         self.autoTest(data)
+        if self.logTime:
+            print(data)
+            self.autoTest(data)
         if self._file:
             self._file.write(data)
 
@@ -125,38 +113,42 @@ class SerialPort:
 
     def autoTest(self, data):
         strData = str(data)
-        if '+++ license activated' in strData:
-            self.connectTimes = 0
-            self.fixCount = 60
-            self.zeroCount = 0
-
-        elif ('GNGGA' in strData) & ('E,0' in strData):
-            self.zeroCount += 1
-            if self.zeroCount > 200:
-                self._file.write("zero >200 Restart")
-                self.reset()
-
-        elif 'E,1' in strData:
-            self.WarmResetTest = True
-            self.connectTimes += 1
-            if self.connectTimes > self.fixCount:
-                self.reset()
+        if time.time() - self.cycleTime > 300:
+            self.warmStart()
+        if 'E,1' in strData and self.state != 1:
+            self.state = 1
+            self.writeLog(1)
+        elif 'E,5' in strData and self.state != 5:
+            self.state = 5
+            self.writeLog(5)
+        elif 'E,4' in strData and self.state != 4:
+            self.state = 4
+            self.writeLog(4)
+        elif 'cors up' in strData:
+            self._file.write('TIME,cors_up,%d,%d\r\n' % (self.cycleTime, time.time() - self.cycleTime))
+        elif self.state == 4 and time.time() - self.cycleTime >= self.warmResetInterval:
+            self.warmStart()
 
     def reset(self):
-        self.zeroCount = 0
-        self.connectTimes = 0
-        self.fixCount = maxCount
         self.callback(self._port)
 
     def warmStart(self):
-        # self.connectTimes += 1
-        # if self.connectTimes > 10:
-        #     self.send_data('AT+WARM_RESET\r\n')
-        #     timeNow = time.strftime('%H:%M:%S', time.localtime(time.time()))
-        #     self.sendTimes += 1
-        #     self._file.write("Warm Restart Time= %s : %d\r\n" % (timeNow, self.sendTimes))
-        #     self.connectTimes = 0
-        # for data in list:
-        #     self._entity.write(data.encode())
-        #     time.sleep(0.1)
-        pass
+        self.warmRestLimit -= 1
+        if self.warmRestLimit <= 0:
+            self.coldReset()
+            self.warmRestLimit = 100
+            return
+        self.send_data('AT+WARM_RESET\r\n')
+        self.cycleTime = time.time()
+        self.state = 0
+        self._file.write("TIME,warm reset:%d,%s\r\n" % (
+            self.cycleTime, time.strftime('%d %H%M%S', time.localtime(time.time()))))
+
+    def coldReset(self):
+        self.state = 0
+        self.send_data('AT+COLD_RESET\r\n')
+        self._file.write("TIME,cold reset:%d,%s\r\n" % (
+            time.time(), time.strftime('%d %H%M%S', time.localtime(time.time()))))
+
+    def writeLog(self, state):
+        self._file.write("TIME,status:%d,%d,%d\r\n" % (state, self.cycleTime, time.time() - self.cycleTime))

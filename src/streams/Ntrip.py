@@ -10,9 +10,10 @@ from src.observer.publish import Publisher
 
 
 class NtripClient(Publisher):
+    # 40.06410906, 116.2281654, 54
 
     def __init__(self, ip='ntrips.feymani.cn', port=2102, user='feyman-user', password="123456", mountPoint='',
-                 latitude=40.0, longitude=116.0, altitude=54.6):
+                 latitude=40.06410906, longitude=116.2281654, altitude=54.6):
         Publisher.__init__(self)
         '''
         parameters
