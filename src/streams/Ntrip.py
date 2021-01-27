@@ -18,7 +18,6 @@ class NtripClient(Publisher):
         '''
         parameters
         '''
-        print(ip)
         self._ip = ip
         self._port = port
         self._user = user
@@ -153,16 +152,14 @@ class NtripClient(Publisher):
         self.start(startCheck=False)
 
     def check(self):
-
-        while self._stopByUser is False:
+        while self._stopByUser is False and self._isRunning:
             self._reconnectLimit += 1
             if (self._reconnectLimit > 5) | self._reconnect is True:
                 self.reconnect()
-            sleep(10)
             self._socket.send(self.getGGAString())
+            sleep(10)
 
     def start_check(self):
-
         if self.check_thread is not None:
             self.check_thread = None
         self.check_thread = Thread(target=self.check, daemon=True)
