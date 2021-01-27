@@ -21,7 +21,7 @@ class SerialPort:
         self.isRunning = True
         self.cycleTime = time.time()
         self.state = 0
-        self.warmRestLimit = 100
+        self.coldRsetLimit = 100
         self.warmResetInterval = 0
         self.logTime = None
 
@@ -65,7 +65,11 @@ class SerialPort:
         if self._entity.is_open:
             if type(data) is str:
                 data = data.encode()
-            self._entity.write(data)
+            try:
+                self._entity.write(data)
+                self._entity.flush()
+            except Exception:
+                return
             print("send data", data)
 
     def read_data(self):
@@ -134,10 +138,11 @@ class SerialPort:
         self.callback(self._port)
 
     def warmStart(self):
-        self.warmRestLimit -= 1
-        if self.warmRestLimit <= 0:
+        self.coldRsetLimit -= 1
+        # cold reset after warm reset 100 times
+        if self.coldRsetLimit <= 0:
             self.coldReset()
-            self.warmRestLimit = 100
+            self.coldRsetLimit = 100
             return
         self.send_data('AT+WARM_RESET\r\n')
         self.cycleTime = time.time()
