@@ -105,7 +105,6 @@ class NtripClient(Publisher):
             self._socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self._socket.connect((self._ip, self._port))
             self._isRunning = True
-
             if self.read_thread is not None:
                 self.read_thread = None
             self.read_thread = Thread(target=self.receive_data, daemon=True)
@@ -140,11 +139,10 @@ class NtripClient(Publisher):
             except Exception as e:
                 self._reconnect = True
                 self._reconnectLimit += 5
-                print(e)
+                print('receive =', e)
                 break
 
     def reconnect(self):
-
         self._isRunning = False
         self._reconnectLimit = 0
         self._socket.close()
@@ -152,11 +150,15 @@ class NtripClient(Publisher):
         self.start(startCheck=False)
 
     def check(self):
-        while self._stopByUser is False and self._isRunning:
+        while self._stopByUser is False:
             self._reconnectLimit += 1
             if (self._reconnectLimit > 5) | self._reconnect is True:
                 self.reconnect()
-            self._socket.send(self.getGGAString())
+            try:
+                if self._isRunning:
+                    self._socket.send(self.getGGAString())
+            except Exception as e:
+                print('check', e)
             sleep(10)
 
     def start_check(self):

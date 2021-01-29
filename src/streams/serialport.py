@@ -76,7 +76,7 @@ class SerialPort:
         try:
             data = self._entity.readline()
         except Exception as e:
-            print(e)
+            print('read_data', e)
             self.isRunning = False
             return
         if self.checkedSupportFmi:
