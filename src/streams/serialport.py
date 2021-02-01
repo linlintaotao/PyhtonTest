@@ -126,13 +126,17 @@ class SerialPort:
         elif 'E,5' in strData and self.state != 5:
             self.state = 5
             self.writeLog(5)
-        elif 'E,4' in strData and self.state != 4:
+        elif 'E,4' in strData and self.state != 4 and self.state != 0:
             self.state = 4
             self.writeLog(4)
+            self.warmStart()
         elif 'cors up' in strData:
             self._file.write('TIME,cors_up,%d,%d\r\n' % (self.cycleTime, time.time() - self.cycleTime))
-        elif self.state == 4 and time.time() - self.cycleTime >= self.warmResetInterval:
-            self.warmStart()
+        elif 'E,4' in strData and self.state == 0:
+            if time.time() - self.cycleTime > 3:
+                self.warmStart()
+        elif 'open error path' in strData:
+            self.coldReset()
 
     def reset(self):
         self.callback(self._port)
@@ -148,7 +152,7 @@ class SerialPort:
         self.cycleTime = time.time()
         self.state = 0
         self._file.write("TIME,warm reset:%d,%s\r\n" % (
-            self.cycleTime, time.strftime('%d %H%M%S', time.localtime(time.time()))))
+            self.cycleTime, time.strftime('%d %H%M%S', time.localtime(time.time())),))
 
     def coldReset(self):
         self.state = 0

@@ -8,6 +8,7 @@ from src.chart.draw import FmiChart
 from src.analysis.nmea import GNGGAFrame
 from src.report.PpWord import PPReporter
 from pandas.plotting import register_matplotlib_converters
+import copy
 
 register_matplotlib_converters()
 
@@ -127,6 +128,9 @@ class PostProcess:
             fmiChart = FmiChart(path=os.path.join(self.ppPath, data.getKey()))
             if len(data.getPPFrameList()) > 0:
                 hzErrorInfo += fmiChart.drawCdf(data.getPPFrameList(), data.getTruthFrame())
+            dataAll = copy.deepcopy(data.getPPFrameList())
+            dataAll.append(data.getTruthFrame())
+            fmiChart.drawLineChart(dataAll)
 
         # 固定解、浮点解占比
         self.makeReport(hzErrorInfo)

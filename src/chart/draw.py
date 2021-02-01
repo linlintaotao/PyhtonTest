@@ -115,6 +115,7 @@ class FmiChart:
         for data in dataframe:
             data.get_state().plot(label=data.get_name(), fontsize=9)
         ax1.set_ylabel('FixState', fontsize=10)
+        ax1.legend(fontsize='small', ncol=1)
         ax1.set_ylim(0, 7)
 
         fig.text(0.75, 0.25, WATERMARK, fontsize=35, color='gray', ha='right', va='bottom', alpha=0.2, rotation=30)
@@ -129,7 +130,6 @@ class FmiChart:
     def drawCdf(self, dataFrameList, dataTruth=None, singlePoint=False, pointTruth=None, onlyFix=False):
 
         cdfInfoList = []
-
         if singlePoint:
             for dataFram in dataFrameList:
                 self.drawSingleCdf(dataFram, dataFram.get_name(), pointTruth=pointTruth, onlyFix=onlyFix)
@@ -137,14 +137,10 @@ class FmiChart:
 
             fig, ax = plt.subplots(4, 1, sharex=True, figsize=(12, 8))
             for dataFram in dataFrameList:
-                print(dataTruth.get_latitude()[0:50])
-                print(dataFram.get_latitude()[0:50])
                 dtN = pd.merge(dataTruth.get_latitude(), dataFram.get_latitude(), left_index=True, right_index=True,
                                how='outer')
                 dtN = dtN.dropna()
-                print(dtN[0:50])
                 dtNorthDiff = (dtN['2_y'] - dtN['2_x']) * D2R * radius
-                print(dtNorthDiff[0:50])
                 ax[0].plot(dtNorthDiff.index, dtNorthDiff.values, lw=1, label=dataFram.get_name())
                 ax[0].legend(fontsize='small', ncol=1)
                 dtE = pd.merge(dataTruth.get_longitude(), dataFram.get_longitude(), left_index=True, right_index=True,
@@ -162,7 +158,6 @@ class FmiChart:
                 ax[3].plot(hzDiff, lw=1)
                 fixPercent = pd.Series([dataFram.getFixPercent()], index=['FixPercent'])
                 cdfInfo = hzDiff.describe(percentiles=[.68, .95, .997]).append(fixPercent)
-                print(type(cdfInfo))
                 cdfInfoList.append((dataFram.get_name(), cdfInfo))
 
             indexList = list(map(lambda a: a.timestamp(), dataTruth.get_latitude().index))
@@ -174,6 +169,7 @@ class FmiChart:
             ax[0].set_ylabel('N error /m', fontsize='small')
             ax[0].set_title(f'Postprocess Vs {dataTruth.get_name()} in NEUH /m ', fontsize='small')
             plt.savefig(self._savePath + '/PP_Result.png')
+            plt.close()
             return cdfInfoList
             # plt.show()
 
