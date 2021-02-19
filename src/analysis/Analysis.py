@@ -18,10 +18,8 @@ register_matplotlib_converters()
 # 获取文件编码类型
 def get_encoding(file):
     # 二进制方式读取，获取字节数据，检测类型
-    print(file)
     with open(file, 'rb') as f:
         data = f.read()[0:1024]
-        print('======>', data)
         return chardet.detect(data)['encoding']
 
 
@@ -55,13 +53,11 @@ class AnalysisTool:
             dirPath = os.path.join(self._dir, fileName.split(endtag)[0])
             if os.path.exists(dirPath) is False:
                 os.mkdir(dirPath)
-            print('start:', time.time())
             """
                 记录设备信息 固件版本 和开始时间
             """
             startTime, swVersion, testTimes, fixedUseTimeList, naviRate, workMode, status, rtkDiff, GPIMU = self.readConfig(
                 fileName, testPower)
-            print('readConfig:', time.time())
 
             self.localTime = datetime.now().date() if len(startTime) <= 0 \
                 else datetime.strptime(startTime, "%Y%m%d_%H%M%S")
@@ -71,7 +67,6 @@ class AnalysisTool:
             """
             fileName = dirPath + endtag
             self.fmiChar = FmiChart(path=dirPath)
-            print('read_table:', time.time())
             df = pd.read_table(fileName, sep=',',
                                # encoding=get_encoding(fileName),
                                encoding='unicode_escape',
@@ -82,7 +77,6 @@ class AnalysisTool:
                                warn_bad_lines=False,
                                low_memory=False
                                )
-            print('drop nan:', time.time())
 
             # self._GSV = df.loc[df['0'].str.contains('GSV')].copy()
             # gsv = GSV(dirPath, df.loc[df['0'].str.contains('GSV')].copy())
@@ -93,21 +87,17 @@ class AnalysisTool:
             df = df.drop(index=df.loc[(df['6'].isna())].index)
             df = df.drop(index=df.loc[(df['6'].astype(str) == '0')].index)
 
-            print('creat gga:', time.time())
             gga = GNGGAFrame(dirPath,
                              df.loc[(df['0'].astype(str) == '$GNGGA') | (df['0'].astype(str) == '$GPGGA')].copy(),
                              self.localTime)
             self._ggaEntity.append(gga)
-            print('max num:', time.time())
 
             maxNum = len(gga.get_altitude())
             if maxNum == 0:
                 continue
             fixNum = len(gga.get_altitude(True))
-            print('draw cep:', time.time())
             cepInfo = self.drawPic(testPower)
             cepResultList.append((portName.split('_')[0], cepInfo))
-            print('append records:', time.time())
             if testPower:
                 records.append((portName.split('_')[0], swVersion, str(testTimes), str(len(fixedUseTimeList))))
                 self.drawFixUseTime(dirPath, portName.split('_')[0], testTimes, fixedUseTimeList)
@@ -115,7 +105,6 @@ class AnalysisTool:
                 records.append((portName.split('_')[0], swVersion, str(maxNum), str(round(fixNum * 100 / maxNum, 2)),
                                 naviRate, workMode, status, rtkDiff, GPIMU))
 
-            print('draw line:', time.time())
             self.drawLine()
 
         """ 生成word文档"""
