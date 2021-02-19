@@ -1,14 +1,15 @@
 # coding= utf-8
 from datetime import timedelta, datetime
 from src.analysis import Gauss
+import os
 
 
 # noinspection PyBroadException
 class GNGGAFrame:
 
     def __init__(self, name, data, localTime, hz=1):
-        # self._name = name.split('-')[0]
-        self._name = name
+        self._name = name.split(os.sep)[-1]
+        # self._name = name
         self._time = localTime
         self.hz = hz
         self._gga = None

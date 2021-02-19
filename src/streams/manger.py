@@ -61,7 +61,7 @@ class Manager:
 
         for serialName in serial_name_list:
 
-            if serialName == 'COM8' or serialName == powerSerial:
+            if serialName in ['COM8', 'COM6', 'COM1'] or serialName == powerSerial:
                 continue
             serialEntity = SerialPort(iport=serialName, baudRate=115200, showLog=True)
             try:
