@@ -50,7 +50,7 @@ class WordReporter:
         doc = Document()
         doc.add_heading('日常静态测试', 0)
         doc.add_paragraph('测试报告生成时间：%s' % self._time)
-        doc.add_paragraph('基站: Obs 20C')
+        doc.add_paragraph('基站: mliyadong')
         table = None
         if self._records is not None:
             table = doc.add_table(rows=1, cols=7, style="Light Grid Accent 1")
