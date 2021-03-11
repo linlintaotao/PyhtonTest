@@ -128,6 +128,7 @@ class PostProcess:
             fmiChart = FmiChart(path=os.path.join(self.ppPath, data.getKey()))
             if len(data.getPPFrameList()) > 0:
                 hzErrorInfo += fmiChart.drawCdf(data.getPPFrameList(), data.getTruthFrame())
+                hzErrorInfo += fmiChart.drawCdf(data.getPPFrameList(), data.getTruthFrame(), onlyFix=True)
             dataAll = copy.deepcopy(data.getPPFrameList())
             dataAll.append(data.getTruthFrame())
             fmiChart.drawLineChart(dataAll)

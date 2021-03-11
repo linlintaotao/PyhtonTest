@@ -64,9 +64,13 @@ class GNGGAFrame:
 
         fixGGA = self._gga.loc[self._gga['6'].astype(int) == 4, :]
         self.fixLatitude = fixGGA.loc[:, '2'].astype(float).apply(lambda x: self.dmTodd(x))
+        self.fixLatitude.name = '2'
         self.fixLongitude = fixGGA.loc[:, '4'].astype(float).apply(lambda x: self.dmTodd(x))
+        self.fixLongitude.name = '4'
+
         self.fixAltitude = fixGGA.loc[:, '9'].apply(lambda x: self.tofloat(x)) + fixGGA.loc[:, '11'].apply(
             lambda x: self.tofloat(x))
+        self.fixAltitude.name = '9'
         self.fixState = fixGGA.loc[:, '6'].astype(int)
 
     def getFixPercent(self):
@@ -126,7 +130,7 @@ class GNGGAFrame:
         for i in range(len(fixList)):
             if fixList[i] > 0:
                 return [self.get_latitude()[i], self.get_longitude()[i], self.get_altitude()[i]]
-        return [40.06410906, 116.2281654, 54]
+        return [40.06419328, 116.22812452, 54.631]
 
     def get_scatter(self):
         latitude = self.get_latitude()

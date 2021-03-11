@@ -46,7 +46,7 @@ class AnalysisTool:
         cepResultList = []
         for fileName in self.fileList:
             self._ggaEntity.clear()
-            if not fileName.endswith(('log', "txt", 'nmea')):
+            if not fileName.endswith(('log', "txt", 'nmea', 'gga')):
                 continue
             portName = fileName
             endtag = "." + fileName.split('.')[-1]

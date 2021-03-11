@@ -137,19 +137,23 @@ class FmiChart:
 
             fig, ax = plt.subplots(4, 1, sharex=True, figsize=(12, 8))
             for dataFram in dataFrameList:
-                dtN = pd.merge(dataTruth.get_latitude(), dataFram.get_latitude(), left_index=True, right_index=True,
+                dtN = pd.merge(dataTruth.get_latitude(onlyFix), dataFram.get_latitude(onlyFix), left_index=True,
+                               right_index=True,
                                how='outer')
                 dtN = dtN.dropna()
                 dtNorthDiff = (dtN['2_y'] - dtN['2_x']) * D2R * radius
                 ax[0].plot(dtNorthDiff.index, dtNorthDiff.values, lw=1, label=dataFram.get_name())
                 ax[0].legend(fontsize='small', ncol=1)
-                dtE = pd.merge(dataTruth.get_longitude(), dataFram.get_longitude(), left_index=True, right_index=True,
+                dtE = pd.merge(dataTruth.get_longitude(onlyFix), dataFram.get_longitude(onlyFix), left_index=True,
+                               right_index=True,
                                how='outer')
                 dtE = dtE.dropna()
                 dtEarthDiff = (dtE['4_y'] - dtE['4_x']) * D2R * radius * np.cos(dtE['4_x'] * D2R)
                 ax[1].plot(dtEarthDiff, lw=1, label=dataFram.get_name())
 
-                dtU = pd.merge(dataTruth.get_altitude(), dataFram.get_altitude(), left_index=True, right_index=True,
+                dtU = pd.merge(dataTruth.get_altitude(onlyFix=onlyFix), dataFram.get_altitude(onlyFix=onlyFix),
+                               left_index=True,
+                               right_index=True,
                                how='outer')
                 dtU = dtU.dropna()
                 dtU = dtU['9_y'] - dtU['9_x']
