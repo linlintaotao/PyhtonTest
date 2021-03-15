@@ -33,9 +33,9 @@ class Manager:
 
     def __init__(self, dir=os.path.abspath('../..') + "/data/"):
         self.dir = dir
-        # self.ntrip = NtripClient(mountPoint='Obs_20C')
-        self.ntrip = NtripClient(ip='ntrip.mliyadong.com', port=2101, user="mosaictest01", password='beijing001',
-                                 mountPoint='BJMSM4_PolaRx5')
+        self.ntrip = NtripClient(mountPoint='Obs_20C')
+        # self.ntrip = NtripClient(ip='ntrip.mliyadong.com', port=2101, user="mosaictest01", password='beijing001',
+        #                          mountPoint='BJMSM4_PolaRx5')
         self.serial_list = list()
         self.portList = list()
         self.timeStr = time.strftime('%Y%m%d_%H%M%S', time.localtime(time.time()))

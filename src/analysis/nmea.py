@@ -67,7 +67,6 @@ class GNGGAFrame:
         self.fixLatitude.name = '2'
         self.fixLongitude = fixGGA.loc[:, '4'].astype(float).apply(lambda x: self.dmTodd(x))
         self.fixLongitude.name = '4'
-
         self.fixAltitude = fixGGA.loc[:, '9'].apply(lambda x: self.tofloat(x)) + fixGGA.loc[:, '11'].apply(
             lambda x: self.tofloat(x))
         self.fixAltitude.name = '9'

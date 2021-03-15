@@ -39,6 +39,7 @@ class AnalysisTool:
             if file.endswith(('log', "txt", 'nmea')):
                 self._dataFiles.append(file)
                 self.fileList.append(file)
+        self.fileList.sort()
         return self.fileList
 
     def analysis(self, testPower=False):
@@ -176,15 +177,17 @@ class AnalysisTool:
         return startTime, swVersion, testTimes, fixUseTimeList, navi_rate, work_mode, status, rtkDiff, GPIMUTIMES
 
     def drawPic(self, testPower=False):
+        pointTruth = [40.0641932, 116.2281244, 54.605]
         cepInfo = None
         for data in self._ggaEntity:
             xList, yList, xFixList, yFixList, fixList = data.get_scatter()
             if len(xFixList) != 0:
-                self.fmiChar.drawScatter('ScatterFix', xFixList, yFixList, testPower=testPower)
+                self.fmiChar.drawScatter('ScatterFix', xFixList, yFixList, useTrue=False, testPower=testPower)
 
-            self.fmiChar.drawScatter('ScatterAll', xList, yList, fixList)
+            self.fmiChar.drawScatter('ScatterAll', xList, yList, fixList, useTrue=false)
             self.fmiChar.drawSingleCdf(data, data.get_name(), pointTruth=None)
-            cepInfo = self.fmiChar.drawSingleCdf(data, data.get_name(), pointTruth=None, onlyFix=True)
+            cepInfo = self.fmiChar.drawSingleCdf(data, data.get_name(), pointTruth=None,
+                                                 onlyFix=True)
             print(cepInfo)
         return cepInfo
 

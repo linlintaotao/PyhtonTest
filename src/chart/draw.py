@@ -53,7 +53,7 @@ class FmiChart:
         xMax, xMin, yMax, yMin = max(xPos), min(xPos), max(yPos), min(yPos)
 
         if useTrue:
-            xCenter, yCenter = Gauss.LatLon2XY(40.09500333, 116.21050922)
+            xCenter, yCenter = Gauss.LatLon2XY(40.0641932, 116.2281244)
         else:
             xCenter, yCenter = np.mean(xPos), np.mean(yPos)
 
@@ -104,7 +104,7 @@ class FmiChart:
         for data in dataframe:
             data.getdAge().plot(label=data.get_name())
         ax3.set_ylabel('dAge', fontsize=10)
-        ax3.set_xlabel('local time', fontsize=10)
+        ax3.set_xlabel('utc time', fontsize=10)
 
         ax2 = plt.subplot(312)
         for data in dataframe:
@@ -166,7 +166,7 @@ class FmiChart:
 
             indexList = list(map(lambda a: a.timestamp(), dataTruth.get_latitude().index))
             ax[3].set_xlim(datetime.utcfromtimestamp(min(indexList)), datetime.utcfromtimestamp(max(indexList)))
-            ax[3].set_xlabel('local time(dd-hh-mm)')
+            ax[3].set_xlabel('utc time(dd-hh-mm)')
             ax[3].set_ylabel('H error /m', fontsize='small')
             ax[2].set_ylabel('U error /m', fontsize='small')
             ax[1].set_ylabel('E error /m', fontsize='small')
@@ -241,7 +241,7 @@ class FmiChart:
         anx_u.set_ylabel(' U error / m')
 
         anx_u.set_xlim(datetime.utcfromtimestamp(xMin), datetime.utcfromtimestamp(xMax))
-        anx_u.set_xlabel('local time(dd-hh-mm)')
+        anx_u.set_xlabel('utc time(dd-hh-mm)')
         plt.savefig(self._savePath + '/NEU' + ('_FIX' if onlyFix else '_All') + '.png')
         plt.close(fig)
 
@@ -251,8 +251,8 @@ class FmiChart:
 
         hzData.hist(cumulative=True, density=True, bins=400, histtype='step', linewidth=2.0,
                     label=nameList)
-        plt.axhline(y=.95, color='b', linestyle='-.', lw=0.6, label='95% line')
-        plt.axhline(y=.68, color='b', linestyle='-.', lw=0.6, label='68% line')
+        plt.axhline(y=.95, color='b', linestyle='-.', lw=1.0, label='95% line')
+        plt.axhline(y=.68, color='r', linestyle='-.', lw=1.0, label='68% line')
         fig.text(0.75, 0.25, WATERMARK, fontsize=35, color='gray', ha='right', va='center', alpha=0.2, rotation=30)
         axh.set_xlabel('Horizontal error (m)')
         axh.set_ylabel('Likelihood of occurrence')
