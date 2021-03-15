@@ -2,6 +2,7 @@
 from datetime import timedelta, datetime
 from src.analysis import Gauss
 import os
+import math
 
 
 # noinspection PyBroadException
@@ -59,7 +60,7 @@ class GNGGAFrame:
         self.longitude = self._gga.loc[:, '4'].astype(float).apply(lambda x: self.dmTodd(x))
         self.state = self._gga.loc[:, '6'].apply(lambda x: self.toint(x))
         self.satNum = self._gga.loc[:, '7'].apply(lambda x: self.tofloat(x))
-        self.dAge = self._gga.loc[:, '13'].apply(lambda x: self.tofloat(x))
+        self.dAge = self._gga.loc[:, '13'].apply(lambda x: self.tofloatContainsNan(x))
         self.altitude = self._gga.loc[:, '9'].apply(lambda x: self.tofloat(x))
 
         fixGGA = self._gga.loc[self._gga['6'].astype(int) == 4, :]
@@ -79,6 +80,17 @@ class GNGGAFrame:
     def tofloat(x):
         try:
             return float(x)
+        except Exception as e:
+            return 0
+
+    @staticmethod
+    def tofloatContainsNan(x):
+        try:
+            result = float(x)
+            if math.isnan(result):
+                return -1
+            else:
+                return result
         except Exception as e:
             return 0
 
