@@ -184,7 +184,7 @@ class AnalysisTool:
             if len(xFixList) != 0:
                 self.fmiChar.drawScatter('ScatterFix', xFixList, yFixList, useTrue=False, testPower=testPower)
 
-            self.fmiChar.drawScatter('ScatterAll', xList, yList, fixList, useTrue=False)
+            self.fmiChar.drawScatter('ScatterAll', xList, yList, fixList)
             self.fmiChar.drawSingleCdf(data, data.get_name(), pointTruth=None)
             cepInfo = self.fmiChar.drawSingleCdf(data, data.get_name(), pointTruth=None,
                                                  onlyFix=True)
