@@ -74,7 +74,11 @@ class FmiChart:
         #     xCenter, yCenter = Gauss.LatLon2XY(40.06419325, 116.22812437)
         # else:
         #     xCenter, yCenter = np.mean(xPos), np.mean(yPos)
-        xCenter, yCenter = np.mean(xPos), np.mean(yPos)
+        # xCenter, yCenter = np.mean(xPos), np.mean(yPos)
+        if useTrue:
+            xCenter, yCenter = Gauss.LatLon2XY(40.0641932, 116.2281244)
+        else:
+            xCenter, yCenter = np.mean(xPos), np.mean(yPos)
 
         axis = max([abs(xMax - xCenter),
                     abs(xMin - xCenter),
@@ -110,7 +114,8 @@ class FmiChart:
         fig.text(0.75, 0.25, WATERMARK, fontsize=35, color='gray', ha='right', va='bottom', alpha=0.2, rotation=30)
 
         '''画点'''
-        ax.scatter(list(map(lambda x: x - xCenter, xPos)), list(map(lambda y: y - yCenter, yPos)), marker='1', c=color)
+        # ax.scatter(list(map(lambda x: x - xCenter, xPos)), list(map(lambda y: y - yCenter, yPos)), marker='1', c=color)
+        ax.scatter(list(map(lambda x: xCenter - x, xPos)), list(map(lambda y: y - yCenter, yPos)), marker='1', c=color)
 
         ax.set_xlim(-axis, axis)
         ax.set_ylim(-axis, axis)
