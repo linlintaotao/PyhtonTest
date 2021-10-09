@@ -37,6 +37,7 @@ class Manager:
         # abcq151: x44et6ym @ sdk.pnt.10086.cn: 8002 / RTCM33_GRCEJ:
         self.ntrip = NtripClient(ip='sdk.pnt.10086.cn', port=8002, user="abup010", password='9jw8ax8m',
                                  mountPoint='RTCM33_GRCEJ')
+        self.ntrip.setDir(self.dir)
         self.serial_list = list()
         self.portList = list()
         self.timeStr = time.strftime('%Y%m%d_%H%M%S', time.localtime(time.time()))

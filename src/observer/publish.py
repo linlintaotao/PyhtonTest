@@ -10,7 +10,6 @@ class Publisher:
     def register(self, observer):
         if observer not in self._observers:
             self._observers.append(observer)
-        print(self._observers)
 
     def unregister(self, observer):
         try:

@@ -7,6 +7,8 @@ from queue import Queue
 from threading import Thread
 from time import sleep
 from src.observer.publish import Publisher
+from src.streams.filereader import FileWriter
+import os
 
 
 class NtripClient(Publisher):
@@ -39,6 +41,8 @@ class NtripClient(Publisher):
         '''
         self._data = Queue()
         self._socket = None
+        self.dir = None
+        self.fileLog = None
 
     def setPosition(self, lat, lon):
         self.flagN = "N"
@@ -61,6 +65,9 @@ class NtripClient(Publisher):
         self.latDeg = int(lat)
         self.lonMin = (lon - self.lonDeg) * 60
         self.latMin = (lat - self.latDeg) * 60
+
+    def setDir(self, dir):
+        self.dir = dir
 
     def getInfo(self):
         return f'Ntrip=%s:%s\r\n' % (self._ip, self._mountPoint)
@@ -98,6 +105,10 @@ class NtripClient(Publisher):
         if self._isRunning is True:
             return
         self._reconnect = False
+
+        if self.fileLog is None:
+            self.fileLog = FileWriter(f'Cors_%s.dat' % self._mountPoint, self.dir)
+
         try:
             if self._socket is not None:
                 self._socket.close()
@@ -134,8 +145,10 @@ class NtripClient(Publisher):
                     self._reconnectLimit = 0
                     # 通知所有的串口进行刷新
                     self.notifyAll(data)
+                    if self.fileLog is not None:
+                        self.fileLog.write(data)
                 # print(data)
-                sleep(0.5)
+                sleep(0.3)
             except Exception as e:
                 self._reconnect = True
                 self._reconnectLimit += 5

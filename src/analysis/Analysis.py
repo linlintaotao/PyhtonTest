@@ -51,7 +51,6 @@ class AnalysisTool:
                 if not fileName.endswith(('log', "txt", 'nmea', 'gga')):
                     continue
                 portName = fileName
-                print(portName)
                 endtag = "." + fileName.split('.')[-1]
                 dirPath = os.path.join(self._dir, fileName.split(endtag)[0])
                 if os.path.exists(dirPath) is False:
