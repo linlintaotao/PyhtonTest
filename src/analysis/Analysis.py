@@ -32,6 +32,7 @@ class AnalysisTool:
         self._dataFiles = list()
         self._ggaEntity = list()
         self._GSVEntity = list()
+        self._tmpPath = self._dir + "/tmp"
 
     # 获取当前文件夹下的所有log文件
     def read_file(self):
@@ -48,6 +49,7 @@ class AnalysisTool:
         for fileName in self.fileList:
             self._ggaEntity.clear()
             try:
+            # if True:
                 if not fileName.endswith(('log', "txt", 'nmea', 'gga')):
                     continue
                 portName = fileName
@@ -55,6 +57,8 @@ class AnalysisTool:
                 dirPath = os.path.join(self._dir, fileName.split(endtag)[0])
                 if os.path.exists(dirPath) is False:
                     os.mkdir(dirPath)
+                if os.path.exists(self._tmpPath) is False:
+                    os.mkdir(self._tmpPath)
                 """
                     记录设备信息 固件版本 和开始时间
                 """
@@ -67,7 +71,7 @@ class AnalysisTool:
                 """
                     we put 20 names because it's Feyman-0183 Data, each line has different num with step ','
                 """
-                fileName = dirPath + endtag
+                fileName = self._tmpPath + "/" + fileName
                 self.fmiChar = FmiChart(path=dirPath)
                 df = pd.read_table(fileName, sep=',',
                                    # encoding=get_encoding(fileName),
@@ -86,6 +90,7 @@ class AnalysisTool:
 
                 # 删除异常数据
                 df = df.drop(index=df.loc[(df['1'].isna())].index)
+                df = df.drop(index=df.loc[(df['2'].isna())].index)
                 df = df.drop(index=df.loc[(df['6'].isna())].index)
                 df = df.drop(index=df.loc[(df['6'].astype(str) == '0')].index)
 
@@ -110,6 +115,7 @@ class AnalysisTool:
 
                 self.drawLine()
             except Exception as e:
+                print(e)
                 pass
         """ 生成word文档"""
         print(records)
@@ -127,6 +133,7 @@ class AnalysisTool:
         swVersion = ''
         testTimes = 0
         path = self._dir + '/' + fileName
+        tmp = self._tmpPath + '/' + fileName
         fixed = False
         navi_rate = ''
         fixUseTimeList = []
@@ -136,34 +143,29 @@ class AnalysisTool:
         GPIMUTIMES = 0
         timeDelay = False
         with open(file=path, errors='ignore') as rf:
-            for line in rf.readlines():
+            readLines = rf.readlines()
+        with open(tmp, 'w', errors='ignore') as fw:
+            for line in readLines:
                 if "GPIMU" in line:
                     GPIMUTIMES += 1
-
                 if len(startTime) <= 0 and ("StartTime" in line):
                     startTime = line.split('=')[-1].replace('\n', '')
                     continue
-
                 if len(swVersion) <= 0:
                     if 'Version' in line:
                         swVersion = line.split('Version:')[-1]
                         swVersion = swVersion.strip('\r\n')
-
                 if len(navi_rate) <= 0:
                     if 'Navi Rate' in line:
                         navi_rate = line.split(':')[-1]
-
                 if len(work_mode) <= 0:
                     if 'Work Mode' in line:
                         work_mode = line.split(':')[-1]
-
                 if 'HeartBeat' in line:
                     heartBeat = True
-
                 if len(rtkDiff) <= 0:
                     if 'Rtk Diff' in line:
                         rtkDiff = line.split(':')[-1]
-
                 if 'time match navi' in line:
                     timeDelay = True
 
@@ -176,13 +178,14 @@ class AnalysisTool:
                         fixed = True
                     elif "GNGGA" in line:
                         fixed = False
-
+                if 'GGA' in line:
+                    fw.write(line)
         status = heartBeat and timeDelay
         return startTime, swVersion, testTimes, fixUseTimeList, navi_rate, work_mode, status, rtkDiff, GPIMUTIMES
 
     def drawPic(self, testPower=False):
-        useTruth = False
-        pointTruth = [40.06454567, 116.22832683, 36.5] if useTruth else None
+        useTruth = True
+        pointTruth = [40.06419305, 116.22812428, 54.540] if useTruth else None
         cepInfo = None
         for data in self._ggaEntity:
             xList, yList, xFixList, yFixList, fixList = data.get_scatter()

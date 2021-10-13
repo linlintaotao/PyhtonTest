@@ -3,15 +3,14 @@ import zipfile
 
 
 # 压缩zip
-def make_zip(source_dir, output_filename, type='.log'):
+def make_zip(source_dir, output_filename, type=''):
     zipf = zipfile.ZipFile(os.path.join(source_dir, output_filename), 'w')
     pre_len = len(os.path.dirname(source_dir))
     for parent, dirnames, filenames in os.walk(source_dir):
         for filename in filenames:
-            if filename.endswith(type):
-                pathfinder = os.path.join(parent, filename)
-                arcname = pathfinder[pre_len:].strip(os.path.sep)
-                zipf.write(pathfinder, arcname)
+            pathfinder = os.path.join(parent, filename)
+            arcname = pathfinder[pre_len:].strip(os.path.sep)
+            zipf.write(pathfinder, arcname)
     zipf.close()
 
 

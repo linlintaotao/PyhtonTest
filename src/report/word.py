@@ -38,6 +38,8 @@ class WordReporter:
         listfile = os.listdir(self._path)
         listfile.sort()
         for fileName in listfile:
+            if 'tmp' in fileName:
+                continue
             dirName = os.path.join(self._path, fileName)
             if os.path.isdir(dirName):
                 doc.add_paragraph('%s 图例>>>' % fileName, style='Intense Quote')

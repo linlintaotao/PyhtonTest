@@ -76,7 +76,7 @@ class FmiChart:
         #     xCenter, yCenter = np.mean(xPos), np.mean(yPos)
         # xCenter, yCenter = np.mean(xPos), np.mean(yPos)
         if useTrue:
-            xCenter, yCenter = Gauss.LatLon2XY(40.0641932, 116.2281244)
+            xCenter, yCenter = Gauss.LatLon2XY(40.06419305, 116.22812428)
         else:
             xCenter, yCenter = np.mean(xPos), np.mean(yPos)
 
@@ -162,8 +162,9 @@ class FmiChart:
                                how='outer')
                 dtN = dtN.dropna()
                 dtNorthDiff = (dtN['2_y'] - dtN['2_x']) * D2R * radius
-                des = dtNorthDiff.describe(percentiles=[.68, .95, .997])
-                print("N", des)
+                # des = dtNorthDiff.describe(percentiles=[.68, .95, .997])
+                # print("N", des)
+                print(dtNorthDiff)
                 ax[0].plot(dtNorthDiff.index, dtNorthDiff.values, lw=1, label=dataFram.get_name())
                 ax[0].legend(fontsize='small', ncol=1)
                 dtE = pd.merge(dataTruth.get_longitude(onlyFix), dataFram.get_longitude(onlyFix), left_index=True,
@@ -171,8 +172,8 @@ class FmiChart:
                                how='outer')
                 dtE = dtE.dropna()
                 dtEarthDiff = (dtE['4_y'] - dtE['4_x']) * D2R * radius * np.cos(dtE['4_x'] * D2R)
-                des = dtEarthDiff.describe(percentiles=[.68, .95, .997])
-                print("N", des)
+                # des = dtEarthDiff.describe(percentiles=[.68, .95, .997])
+                # print("N", des)
 
                 ax[1].plot(dtEarthDiff, lw=1, label=dataFram.get_name())
                 dtU = pd.merge(dataTruth.get_altitude(onlyFix=onlyFix), dataFram.get_altitude(onlyFix=onlyFix),
@@ -182,8 +183,8 @@ class FmiChart:
                 dtU = dtU.dropna()
                 dtU = dtU['9_y'] - dtU['9_x']
                 ax[2].plot(dtU, lw=1)
-                des = dtU.describe(percentiles=[.68, .95, .997])
-                print("U", des)
+                # des = dtU.describe(percentiles=[.68, .95, .997])
+                # print("U", des)
 
                 hzDiff = np.sqrt(dtNorthDiff[:] ** 2 + dtEarthDiff[:] ** 2)
                 ax[3].plot(hzDiff, lw=1)
@@ -210,6 +211,7 @@ class FmiChart:
 
         n_diff = dataFram.get_latitude(onlyFix=onlyFix) \
             .apply(lambda x: (x - pointTruth[0]) * D2R * radius)
+        # print(n_diff)
         e_diff = dataFram.get_longitude(onlyFix=onlyFix) \
             .apply(lambda x: (x - pointTruth[1]) * D2R * radius * np.cos(pointTruth[0] * D2R))
         u_diff = dataFram.get_altitude(onlyFix=onlyFix) \
