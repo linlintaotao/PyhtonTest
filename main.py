@@ -43,7 +43,7 @@ def stop():
 def test(argv):
     if len(argv) <= 1:
         return
-    useHour= int(argv[1])
+    useHour = float(argv[1])
     global timeStr, manager
     try:
         timeStr = time.strftime('%Y%m%d_%H%M%S', time.localtime(time.time()))
@@ -67,6 +67,4 @@ def test(argv):
 
 
 if __name__ == '__main__':
-
-
     test(sys.argv)

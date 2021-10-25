@@ -51,6 +51,7 @@ class FmiChart:
         accuracyItem = round(axis / 10, 2)
         for i in range(len(accuracyItems)):
             if accuracyItem < accuracyItems[i]:
+                i = i - 1 if i > 0 else 0
                 accuracyItem = accuracyItems[i]
                 return accuracyItem
         return accuracyItems[-1]
@@ -70,13 +71,8 @@ class FmiChart:
             return
         xMax, xMin, yMax, yMin = max(xPos), min(xPos), max(yPos), min(yPos)
 
-        # if useTrue:
-        #     xCenter, yCenter = Gauss.LatLon2XY(40.06419325, 116.22812437)
-        # else:
-        #     xCenter, yCenter = np.mean(xPos), np.mean(yPos)
-        # xCenter, yCenter = np.mean(xPos), np.mean(yPos)
         if useTrue:
-            xCenter, yCenter = Gauss.LatLon2XY(40.06419305, 116.22812428)
+            xCenter, yCenter = Gauss.LatLon2XY(40.06419307, 116.22812422)
         else:
             xCenter, yCenter = np.mean(xPos), np.mean(yPos)
 

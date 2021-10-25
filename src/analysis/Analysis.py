@@ -185,7 +185,8 @@ class AnalysisTool:
 
     def drawPic(self, testPower=False):
         useTruth = True
-        pointTruth = [40.06419305, 116.22812428, 54.540] if useTruth else None
+        # pointTruth = [40.06419305, 116.22812428, 54.540] if useTruth else None
+        pointTruth = [40.06419307, 116.22812422, 54.593] if useTruth else None
         cepInfo = None
         for data in self._ggaEntity:
             xList, yList, xFixList, yFixList, fixList = data.get_scatter()

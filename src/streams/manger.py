@@ -34,9 +34,11 @@ class Manager:
     def __init__(self, dir=os.path.abspath('../..') + "/data/"):
         self.dir = dir
         # self.ntrip = NtripClient(mountPoint='Obs_20C')
-        # abcq151: x44et6ym @ sdk.pnt.10086.cn: 8002 / RTCM33_GRCEJ:
+
         self.ntrip = NtripClient(ip='sdk.pnt.10086.cn', port=8002, user="abup010", password='9jw8ax8m',
                                  mountPoint='RTCM33_GRCEJ')
+        # self.ntrip = NtripClient(ip='219.142.87.107', port=81, user="asdasd-user", password='123456',
+        #                          mountPoint='Obs_aoh')
         self.ntrip.setDir(self.dir)
         self.serial_list = list()
         self.portList = list()
