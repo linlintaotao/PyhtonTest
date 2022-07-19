@@ -23,13 +23,13 @@ class SerialPort:
         self.state = 0
         self.coldRsetLimit = 100
         self.warmResetInterval = 0
-        self.logTime = None
+        self.resetTest = None
 
     def setCallback(self, callback):
         self.callback = callback
 
-    def logStateTime(self, logTime, warmResetInterval=0):
-        self.logTime = logTime
+    def logStateTime(self, resetTest, warmResetInterval=0):
+        self.resetTest = resetTest
         self.warmResetInterval = warmResetInterval
 
     def setSupportFmi(self, supportListener):
@@ -94,8 +94,8 @@ class SerialPort:
         # if self._showLog is True:
         #     if self.callback is not None:
         #         self.autoTest(data)
-        if self.logTime:
-            print(data)
+        if self.resetTest:
+            # print(data)
             self.autoTest(data)
         if self._file:
             self._file.write(data)
@@ -124,33 +124,35 @@ class SerialPort:
         strData = str(data)
         if time.time() - self.cycleTime > 300:
             self.warmStart()
-        if 'E,1' in strData and self.state != 1:
-            self.state = 1
-            self.writeLog(1)
-        elif 'E,5' in strData and self.state != 5:
-            self.state = 5
-            self.writeLog(5)
-        elif 'E,4' in strData and self.state != 4 and self.state != 0:
-            self.state = 4
-            self.writeLog(4)
-            self.warmStart()
+        if '$GNGGA' in strData:
+            if 'E,1' in strData and self.state != 1:
+                if self.coldRsetLimit <= 0:
+                    self.coldRsetLimit = 80
+                self.state = 1
+                self.writeLog(1)
+            elif 'E,5' in strData and self.state != 5:
+                self.state = 5
+                self.writeLog(5)
+            elif 'E,4' in strData and self.state != 4 and self.state != 0:
+                self.state = 4
+                self.writeLog(4)
+                self.warmStart()
+            elif 'E,4' in strData and self.state == 0:
+                if time.time() - self.cycleTime > 3:
+                    self.warmStart()
         elif 'cors up' in strData:
             self._file.write('TIME,cors_up,%d,%d\r\n' % (self.cycleTime, time.time() - self.cycleTime))
-        elif 'E,4' in strData and self.state == 0:
-            if time.time() - self.cycleTime > 3:
-                self.warmStart()
-        elif 'open error path' in strData:
+        elif 'open error filePath' in strData:
             self.coldReset()
-
+            
     def reset(self):
         self.callback(self._port)
 
     def warmStart(self):
         self.coldRsetLimit -= 1
-        # cold reset after warm reset 100 times
+        # cold reset after warm reset 80 times
         if self.coldRsetLimit <= 0:
             self.coldReset()
-            self.coldRsetLimit = 100
             return
         self.send_data('AT+WARM_RESET\r\n')
         self.cycleTime = time.time()

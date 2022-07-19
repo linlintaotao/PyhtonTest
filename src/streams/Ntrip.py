@@ -152,7 +152,7 @@ class NtripClient(Publisher):
             except Exception as e:
                 self._reconnect = True
                 self._reconnectLimit += 5
-                print('receive =', e)
+                print('receive_data =', e)
                 break
 
     def reconnect(self):

@@ -8,8 +8,10 @@ from src.analysis import Gauss
 import math
 import pandas as pd
 import matplotlib.dates as mdates
+from scipy.stats import gaussian_kde
+from matplotlib.colors import LogNorm
 
-accuracyItems = [0.01, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 100, 1000]
+accuracyItems = [0.01, 0.02, 0.03, 0.05, 0.1, 0.2, 0.5, 1, 2, 5, 10, 100, 1000]
 WATERMARK = ""
 radius = 6371000
 D2R = 0.017453292519943295
@@ -51,7 +53,6 @@ class FmiChart:
         accuracyItem = round(axis / 10, 2)
         for i in range(len(accuracyItems)):
             if accuracyItem < accuracyItems[i]:
-                i = i - 1 if i > 0 else 0
                 accuracyItem = accuracyItems[i]
                 return accuracyItem
         return accuracyItems[-1]
@@ -72,9 +73,11 @@ class FmiChart:
         xMax, xMin, yMax, yMin = max(xPos), min(xPos), max(yPos), min(yPos)
 
         if useTrue:
-            xCenter, yCenter = Gauss.LatLon2XY(40.06419307, 116.22812422)
+            # [40.06410843, 116.22816529, 53.916]
+            xCenter, yCenter = Gauss.LatLon2XY(40.0641088,116.2281659)
         else:
             xCenter, yCenter = np.mean(xPos), np.mean(yPos)
+        # xCenter, yCenter = np.mean(xPos), np.mean(yPos)
 
         axis = max([abs(xMax - xCenter),
                     abs(xMin - xCenter),
@@ -94,14 +97,14 @@ class FmiChart:
 
         accuracyItem = self.get_accuracy(axis)
 
-        '''统计误差概率'''
-        x_np = np.array(xPos)
-        y_np = np.array(yPos)
-        distance = np.sqrt(np.power(x_np - xCenter, 2) + np.power(y_np - yCenter, 2))
-        statistic_arr(distance, np.array([0.2, 0.5, 1]))
+        # '''统计误差概率'''
+        # x_np = np.array(xPos)
+        # y_np = np.array(yPos)
+        # distance = np.sqrt(np.power(x_np - xCenter, 2) + np.power(y_np - yCenter, 2))
+        # statistic_arr(distance, np.array([0.1, 0.2, 0.5, 1]))
 
         '''画提示网格和圆'''
-        for i in range(7):
+        for i in range(6):
             mid = round(accuracyItem * i, 2)
             circle = pacthes.Circle((0, 0), mid, fill=False, ls='--', color='lightgray', gid=str(mid))
             if i != 0:
@@ -109,9 +112,23 @@ class FmiChart:
             ax.add_patch(circle)
         fig.text(0.75, 0.25, WATERMARK, fontsize=35, color='gray', ha='right', va='bottom', alpha=0.2, rotation=30)
 
-        '''画点'''
-        # ax.scatter(list(map(lambda x: x - xCenter, xPos)), list(map(lambda y: y - yCenter, yPos)), marker='1', c=color)
-        ax.scatter(list(map(lambda x: xCenter - x, xPos)), list(map(lambda y: y - yCenter, yPos)), marker='1', c=color)
+        ax.scatter(list(map(lambda x: xCenter - x, xPos)), list(map(lambda y: y - yCenter, yPos)), marker='1',
+                   c=color)
+        # '''画点'''
+        # if fixList is not None:
+        #     ax.scatter(list(map(lambda x: xCenter - x, xPos)), list(map(lambda y: y - yCenter, yPos)), marker='1',
+        #                c=color)
+        # else:
+        #     x = np.array(list(map(lambda x: xCenter - x, xPos)))
+        #     y = np.array(list(map(lambda y: y - yCenter, yPos)))
+        #     # Calculate the point density
+        #     xy = np.vstack([x, y])
+        #     z = gaussian_kde(xy)(xy)
+        #     # Sort the points by density, so that the densest points are plotted last
+        #     idx = z.argsort()
+        #     x, y, z = x[idx], y[idx], z[idx]
+        #     sc = ax.scatter(x, y, c=z, cmap='Spectral')
+        #     fig.colorbar(sc)
 
         ax.set_xlim(-axis, axis)
         ax.set_ylim(-axis, axis)
@@ -158,9 +175,8 @@ class FmiChart:
                                how='outer')
                 dtN = dtN.dropna()
                 dtNorthDiff = (dtN['2_y'] - dtN['2_x']) * D2R * radius
-                # des = dtNorthDiff.describe(percentiles=[.68, .95, .997])
-                # print("N", des)
-                print(dtNorthDiff)
+                des = dtNorthDiff.describe(percentiles=[.68, .95, .997])
+                print("N", des)
                 ax[0].plot(dtNorthDiff.index, dtNorthDiff.values, lw=1, label=dataFram.get_name())
                 ax[0].legend(fontsize='small', ncol=1)
                 dtE = pd.merge(dataTruth.get_longitude(onlyFix), dataFram.get_longitude(onlyFix), left_index=True,
@@ -168,8 +184,8 @@ class FmiChart:
                                how='outer')
                 dtE = dtE.dropna()
                 dtEarthDiff = (dtE['4_y'] - dtE['4_x']) * D2R * radius * np.cos(dtE['4_x'] * D2R)
-                # des = dtEarthDiff.describe(percentiles=[.68, .95, .997])
-                # print("N", des)
+                des = dtEarthDiff.describe(percentiles=[.68, .95, .997])
+                print("N", des)
 
                 ax[1].plot(dtEarthDiff, lw=1, label=dataFram.get_name())
                 dtU = pd.merge(dataTruth.get_altitude(onlyFix=onlyFix), dataFram.get_altitude(onlyFix=onlyFix),
@@ -179,8 +195,8 @@ class FmiChart:
                 dtU = dtU.dropna()
                 dtU = dtU['9_y'] - dtU['9_x']
                 ax[2].plot(dtU, lw=1)
-                # des = dtU.describe(percentiles=[.68, .95, .997])
-                # print("U", des)
+                des = dtU.describe(percentiles=[.68, .95, .997])
+                print("U", des)
 
                 hzDiff = np.sqrt(dtNorthDiff[:] ** 2 + dtEarthDiff[:] ** 2)
                 ax[3].plot(hzDiff, lw=1)
@@ -207,7 +223,6 @@ class FmiChart:
 
         n_diff = dataFram.get_latitude(onlyFix=onlyFix) \
             .apply(lambda x: (x - pointTruth[0]) * D2R * radius)
-        # print(n_diff)
         e_diff = dataFram.get_longitude(onlyFix=onlyFix) \
             .apply(lambda x: (x - pointTruth[1]) * D2R * radius * np.cos(pointTruth[0] * D2R))
         u_diff = dataFram.get_altitude(onlyFix=onlyFix) \
@@ -326,3 +341,21 @@ class FmiChart:
         ax.set_ylabel('use time (s)')
         fig.savefig(self._savePath + f'/{name}_testPower.png')
         plt.close(fig)
+
+
+if __name__ == '__main__':
+    # Generate fake data
+    x = np.random.normal(size=500)
+    y = x * 3 + np.random.normal(size=500)
+    # Calculate the point density
+    xy = np.vstack([x, y])
+    z = gaussian_kde(xy)(xy)
+
+    # Sort the points by density, so that the densest points are plotted last
+    idx = z.argsort()
+    x, y, z = x[idx], y[idx], z[idx]
+    print(x, y, z)
+    fig, ax = plt.subplots()
+    plt.scatter(x, y, c=z, s=20, cmap='Spectral')
+    plt.colorbar()
+    plt.show()

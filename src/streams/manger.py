@@ -9,13 +9,15 @@ from src.streams.Ntrip import NtripClient
 from src.streams.serialport import SerialPort
 from src.streams.filereader import FileWriter
 from threading import Thread
+from threading import Timer
 
 mSerial = None
-
 powerSerial = '/dev/cu.usbserial-14230'
 fixedSerialList = []
-
 switchOff = True
+manager = None
+
+resetTestList = []  # 'COM30', 'COM88'
 
 
 def find_serial():
@@ -35,10 +37,10 @@ class Manager:
         self.dir = dir
         # self.ntrip = NtripClient(mountPoint='Obs_20C')
 
-        self.ntrip = NtripClient(ip='sdk.pnt.10086.cn', port=8002, user="abup010", password='9jw8ax8m',
-                                 mountPoint='RTCM33_GRCEJ')
-        # self.ntrip = NtripClient(ip='219.142.87.107', port=81, user="asdasd-user", password='123456',
-        #                          mountPoint='Obs_aoh')
+        self.ntrip = NtripClient(ip='ntrips.feymani.cn', port=2102, user="feyman-user", password='123456',
+                                 mountPoint='Obs_yd')
+        # self.ntrip = NtripClient(ip='219.142.87.107', port=81, user="feyman-user", password='123456',
+        #                         mountPoint='Obs_yd')
         self.ntrip.setDir(self.dir)
         self.serial_list = list()
         self.portList = list()
@@ -67,11 +69,16 @@ class Manager:
 
             if serialName in ['COM8', 'COM6', 'COM1'] or serialName == powerSerial:
                 continue
-            serialEntity = SerialPort(iport=serialName, baudRate=115200, showLog=True)
+            baudrate = 115200
+            if serialName in ['COM100']:
+                baudrate = 460800
+            serialEntity = SerialPort(iport=serialName, baudRate=baudrate, showLog=True)
             try:
                 serialEntity.start()
                 # 检查是否是板卡使用的串口
                 serialEntity.setSupportFmi(self.checkSerialIsSupport)
+                if serialName in resetTestList:
+                    serialEntity.logStateTime(True, warmResetInterval=0)
                 # 测试开关上电
                 if powerTest:
                     serialEntity.setCallback(self.checkSerialIsFixed)
@@ -126,14 +133,16 @@ class Manager:
             print(port, serial_entity.getPort())
             if port == serial_entity.getPort():
                 self.serialInUseNum += 1
+                tag = "RESET_TEST_" if port in resetTestList else ""
                 file = FileWriter(
-                    serial_entity.getPort().split('/')[-1] + '_' + Manager.instance().timeStr + ".log",
+                    serial_entity.getPort().split('/')[-1] + '_' + tag + Manager.instance().timeStr + ".log",
                     Manager.instance().getDir())
                 serial_entity.setFile(file, Manager.instance().timeStr)
                 # if not self:
                 serial_entity.send_data("AT+READ_PARA\r\n")
                 Manager.instance().ntrip.register(serial_entity)
                 serial_entity.writeSerialData(Manager.instance().ntrip.getInfo())
+                break
 
     def checkSerialIsFixed(self, port):
 
@@ -158,8 +167,17 @@ class Manager:
             self.mSerial.write(bytes.fromhex("A0 01 01 A2"))
 
 
+def stop():
+    print("================stop")
+    if manager is not None:
+        manager.stop()
+
+
 if __name__ == '__main__':
     # mSerial = serial.Serial(powerSerial, 9600)
     manager = Manager().instance()
     timeStr = time.strftime('%Y%m%d_%H%M%S', time.localtime(time.time()))
     manager.start(powerTest=False)
+    scheduler = Timer(60 * 10, stop)
+    scheduler.start()
+    scheduler.join()

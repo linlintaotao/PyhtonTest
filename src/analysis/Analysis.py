@@ -11,6 +11,7 @@ from src.report.word import WordReporter
 
 from pandas.plotting import register_matplotlib_converters
 from src.analysis import gnss_distance
+from src.utils.visualize_fix_time import analysisLogFile
 
 register_matplotlib_converters()
 
@@ -33,13 +34,18 @@ class AnalysisTool:
         self._ggaEntity = list()
         self._GSVEntity = list()
         self._tmpPath = self._dir + "/tmp"
+        self.resetTesFile = list()
 
     # 获取当前文件夹下的所有log文件
     def read_file(self):
         for file in os.listdir(self._dir):
             if file.endswith(('log', "txt", 'nmea')):
+                print("==>" + file)
                 self._dataFiles.append(file)
                 self.fileList.append(file)
+                if file.__contains__("RESET_TEST"):
+
+                    self.resetTesFile.append(self._dir + "/" + file)
         self.fileList.sort()
         return self.fileList
 
@@ -49,7 +55,7 @@ class AnalysisTool:
         for fileName in self.fileList:
             self._ggaEntity.clear()
             try:
-            # if True:
+                # if True:
                 if not fileName.endswith(('log', "txt", 'nmea', 'gga')):
                     continue
                 portName = fileName
@@ -84,10 +90,6 @@ class AnalysisTool:
                                    low_memory=False
                                    )
 
-                # self._GSV = df.loc[df['0'].str.contains('GSV')].copy()
-                # gsv = GSV(dirPath, df.loc[df['0'].str.contains('GSV')].copy())
-                # self._GSVEntity.append(gsv)
-
                 # 删除异常数据
                 df = df.drop(index=df.loc[(df['1'].isna())].index)
                 df = df.drop(index=df.loc[(df['2'].isna())].index)
@@ -117,12 +119,26 @@ class AnalysisTool:
             except Exception as e:
                 print(e)
                 pass
+
+        self.parseResetLogFile()
+
         """ 生成word文档"""
         print(records)
         report = WordReporter(self._dir, time.strftime('%Y%m%d_%H%M%S', time.localtime(time.time())))
         report.setRecords(records, testPower)
         report.setCepResult(cepResultList)
         report.build()
+
+    def parseResetLogFile(self):
+        if len(self.resetTesFile) <= 0:
+            return None
+        try:
+            for fileName in self.resetTesFile:
+                endtag = "." + fileName.split('.')[-1]
+                dirPath = os.path.join(self._dir, fileName.split(endtag)[0])
+                analysisLogFile(fileName, dirPath)
+        except Exception as e:
+            print(e)
 
     def analysisGSV(self):
 
@@ -161,7 +177,7 @@ class AnalysisTool:
                 if len(work_mode) <= 0:
                     if 'Work Mode' in line:
                         work_mode = line.split(':')[-1]
-                if 'HeartBeat' in line:
+                if 'HeartBeat' in line or 'BROM' in line:
                     heartBeat = True
                 if len(rtkDiff) <= 0:
                     if 'Rtk Diff' in line:
@@ -184,9 +200,10 @@ class AnalysisTool:
         return startTime, swVersion, testTimes, fixUseTimeList, navi_rate, work_mode, status, rtkDiff, GPIMUTIMES
 
     def drawPic(self, testPower=False):
-        useTruth = True
-        # pointTruth = [40.06419305, 116.22812428, 54.540] if useTruth else None
-        pointTruth = [40.06419307, 116.22812422, 54.593] if useTruth else None
+        useTruth = False
+        # pointTruth = [40.06419307, 116.22812422, 54.593] if useTruth else None
+        # pointTruth = [40.06410843, 116.22816529, 53.916] if useTruth else None
+        pointTruth = [40.0641088, 116.2281659, 53.916] if useTruth else None
         cepInfo = None
         for data in self._ggaEntity:
             xList, yList, xFixList, yFixList, fixList = data.get_scatter()

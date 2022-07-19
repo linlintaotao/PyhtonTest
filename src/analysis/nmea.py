@@ -1,5 +1,8 @@
 # coding= utf-8
 from datetime import timedelta, datetime
+
+import numpy as np
+
 from src.analysis import Gauss
 import os
 import math
@@ -38,20 +41,20 @@ class GNGGAFrame:
             strData[0] = '0' + strData[0]
         readLen = 2 if len(strData) > 2 else len(strData)
         timeStr = strData[0] + "." + strData[1][0:readLen]
-        time = datetime.strptime(timeStr, '%H%M%S.%f')
-        microsecond_ = time.microsecond / 1000
-        if microsecond_ > 950:
-            time += timedelta(seconds=1)
-            time = time.replace(microsecond=0)
-        elif microsecond_ < 50:
-            time = time.replace(microsecond=0)
+        timeHMS = datetime.strptime(timeStr, '%H%M%S.%f')
+        microsecond_ = timeHMS.microsecond / 1000
+        # if microsecond_ > 980:
+        #     timeHMS += timedelta(seconds=1)
+        #     timeHMS = timeHMS.replace(microsecond=0)
+        # elif microsecond_ < 20:
+        #     timeHMS = timeHMS.replace(microsecond=0)
 
-        if time.hour == 0 and time.minute == 0 and time.second == 0 and time.microsecond == 0:
+        if timeHMS.hour == 0 and timeHMS.minute == 0 and timeHMS.second == 0 and timeHMS.microsecond == 0:
             self._time += timedelta(days=1)
-        elif self.hour > time.hour:
+        elif self.hour > timeHMS.hour:
             self._time += timedelta(days=1)
-        self.hour = time.hour
-        result = time.replace(year=self._time.year, month=self._time.month, day=self._time.day)
+        self.hour = timeHMS.hour
+        result = timeHMS.replace(year=self._time.year, month=self._time.month, day=self._time.day)
         return result
 
     def parseData(self, data):
@@ -142,14 +145,9 @@ class GNGGAFrame:
         return self.altitude
 
     def getPointTruth(self):
-        fixList = self.get_state()
-        for i in range(len(fixList)):
-            if fixList[i] == 4:
-                return [self.get_latitude()[i], self.get_longitude()[i], self.get_altitude()[i]]
-        # for i in range(len(fixList)):
-        #     if fixList[i] > 0:
-        #         return [self.get_latitude()[i], self.get_longitude()[i], self.get_altitude()[i]]
-        return [40.06419325, 116.22812437, 54.631]
+
+        return [np.mean(self.get_latitude(onlyFix=True)), np.mean(self.get_longitude(onlyFix=True)),
+                np.mean(self.get_altitude(onlyFix=True))]
 
     def get_scatter(self):
         latitude = self.get_latitude()
